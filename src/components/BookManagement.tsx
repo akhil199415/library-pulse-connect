@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Edit, Trash2, BookOpen, Calendar, User, FileText, Printer } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, BookOpen } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BookCard } from "./book-management/BookCard";
+import { BookFilters } from "./book-management/BookFilters";
+import { AddBookDialog } from "./book-management/AddBookDialog";
+import { RepaymentDialog } from "./book-management/RepaymentDialog";
+import { MissingBookCard } from "./book-management/MissingBookCard";
 
 interface Book {
   id: string;
@@ -218,7 +218,6 @@ export const BookManagement = () => {
     ));
 
     if (mode === 'book') {
-      // Add replacement book
       const replacementBook: Book = {
         ...details.book,
         id: Date.now().toString(),
@@ -308,6 +307,12 @@ export const BookManagement = () => {
     return matchesSearch && matchesType && matchesCondition && matchesTab;
   });
 
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setFilterType("all");
+    setFilterCondition("all");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -319,218 +324,19 @@ export const BookManagement = () => {
               Add Book
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Book</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    value={newBook.title}
-                    onChange={(e) => setNewBook({...newBook, title: e.target.value})}
-                    placeholder="Enter book title"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="author">Author *</Label>
-                  <Input
-                    id="author"
-                    value={newBook.author}
-                    onChange={(e) => setNewBook({...newBook, author: e.target.value})}
-                    placeholder="Enter author name"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="genre">Genre</Label>
-                  <Input
-                    id="genre"
-                    value={newBook.genre}
-                    onChange={(e) => setNewBook({...newBook, genre: e.target.value})}
-                    placeholder="Enter genre"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="publisher">Publisher</Label>
-                  <Input
-                    id="publisher"
-                    value={newBook.publisher}
-                    onChange={(e) => setNewBook({...newBook, publisher: e.target.value})}
-                    placeholder="Enter publisher"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="isbn">ISBN</Label>
-                  <Input
-                    id="isbn"
-                    value={newBook.isbn}
-                    onChange={(e) => setNewBook({...newBook, isbn: e.target.value})}
-                    placeholder="Enter ISBN"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="price">Price (₹)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={newBook.price}
-                    onChange={(e) => setNewBook({...newBook, price: Number(e.target.value)})}
-                    placeholder="Enter price"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="shelf">Shelf</Label>
-                  <Input
-                    id="shelf"
-                    value={newBook.shelf}
-                    onChange={(e) => setNewBook({...newBook, shelf: e.target.value})}
-                    placeholder="A, B, C..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rack">Rack</Label>
-                  <Input
-                    id="rack"
-                    value={newBook.rack}
-                    onChange={(e) => setNewBook({...newBook, rack: e.target.value})}
-                    placeholder="1, 2, 3..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="condition">Condition</Label>
-                  <Select value={newBook.condition} onValueChange={(value) => setNewBook({...newBook, condition: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Obsolete">Obsolete</SelectItem>
-                      <SelectItem value="Missing">Missing</SelectItem>
-                      <SelectItem value="Binding">Binding</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="type">Type</Label>
-                  <Select value={newBook.type} onValueChange={(value) => setNewBook({...newBook, type: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Circulating">Circulating</SelectItem>
-                      <SelectItem value="Reference">Reference</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="source">Source</Label>
-                  <Select value={newBook.source} onValueChange={(value) => setNewBook({...newBook, source: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Purchase">Purchase</SelectItem>
-                      <SelectItem value="Donation">Donation</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {newBook.source === "Donation" && (
-                <div>
-                  <Label htmlFor="donorName">Donor Name</Label>
-                  <Input
-                    id="donorName"
-                    value={newBook.donorName}
-                    onChange={(e) => setNewBook({...newBook, donorName: e.target.value})}
-                    placeholder="Enter donor name"
-                  />
-                </div>
-              )}
-
-              {newBook.source === "Purchase" && (
-                <div>
-                  <Label htmlFor="purchaseDate">Purchase Date</Label>
-                  <Input
-                    id="purchaseDate"
-                    type="date"
-                    value={newBook.purchaseDate}
-                    onChange={(e) => setNewBook({...newBook, purchaseDate: e.target.value})}
-                  />
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleAddBook}>
-                  Add Book
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
         </Dialog>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Search & Filter</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search books..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="circulating">Circulating</SelectItem>
-                <SelectItem value="reference">Reference</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterCondition} onValueChange={setFilterCondition}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by condition" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Conditions</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="obsolete">Obsolete</SelectItem>
-                <SelectItem value="missing">Missing</SelectItem>
-                <SelectItem value="binding">Binding</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline">Clear Filters</Button>
-          </div>
-        </CardContent>
-      </Card>
+      <BookFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filterType={filterType}
+        setFilterType={setFilterType}
+        filterCondition={filterCondition}
+        setFilterCondition={setFilterCondition}
+        onClearFilters={handleClearFilters}
+      />
 
-      {/* Tabs for different book conditions */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="all">All Books</TabsTrigger>
@@ -541,129 +347,17 @@ export const BookManagement = () => {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {/* Books List */}
           <div className="grid gap-4">
             {filteredBooks.map((book) => (
-              <Card key={book.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <BookOpen className="w-5 h-5 text-primary" />
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{book.title}</h3>
-                          <p className="text-sm text-muted-foreground">by {book.author}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Book #:</span> {book.bookNumber}
-                        </div>
-                        <div>
-                          <span className="font-medium">Genre:</span> {book.genre}
-                        </div>
-                        <div>
-                          <span className="font-medium">Location:</span> {book.shelf}-{book.rack}
-                        </div>
-                        <div>
-                          <span className="font-medium">Price:</span> ₹{book.price}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant={book.type === "Circulating" ? "default" : "secondary"}>
-                          {book.type}
-                        </Badge>
-                        <Badge variant={book.condition === "Active" ? "default" : "destructive"}>
-                          {book.condition}
-                        </Badge>
-                        {book.isIssued && (
-                          <Badge variant="outline" className="text-yellow-600">
-                            Issued
-                          </Badge>
-                        )}
-                      </div>
-
-                      {book.isIssued && (
-                        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                          <div className="flex items-center gap-2 text-sm">
-                            <User className="w-4 h-4" />
-                            <span className="font-medium">Borrowed by:</span> {book.borrower}
-                          </div>
-                          <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                            <span>Issued: {book.issueDate}</span>
-                            <span>Due: {book.dueDate}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
         </TabsContent>
 
         <TabsContent value="active" className="space-y-4">
-          {/* Active Books */}
           <div className="grid gap-4">
             {filteredBooks.filter(book => book.condition === "Active").map((book) => (
-              <Card key={book.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <BookOpen className="w-5 h-5 text-primary" />
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{book.title}</h3>
-                          <p className="text-sm text-muted-foreground">by {book.author}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Book #:</span> {book.bookNumber}
-                        </div>
-                        <div>
-                          <span className="font-medium">Genre:</span> {book.genre}
-                        </div>
-                        <div>
-                          <span className="font-medium">Location:</span> {book.shelf}-{book.rack}
-                        </div>
-                        <div>
-                          <span className="font-medium">Price:</span> ₹{book.price}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="default">Active</Badge>
-                        <Badge variant={book.type === "Circulating" ? "default" : "secondary"}>
-                          {book.type}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
         </TabsContent>
@@ -676,56 +370,7 @@ export const BookManagement = () => {
           
           <div className="grid gap-4">
             {filteredBooks.filter(book => book.condition === "Obsolete").map((book) => (
-              <Card key={book.id} className="hover:shadow-md transition-shadow border-orange-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <BookOpen className="w-5 h-5 text-orange-600" />
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{book.title}</h3>
-                          <p className="text-sm text-muted-foreground">by {book.author}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Book #:</span> {book.bookNumber}
-                        </div>
-                        <div>
-                          <span className="font-medium">Added:</span> {book.addedDate}
-                        </div>
-                        <div>
-                          <span className="font-medium">Original Price:</span> ₹{book.price}
-                        </div>
-                        <div>
-                          <span className="font-medium">Publisher:</span> {book.publisher}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Badge variant="destructive">Obsolete</Badge>
-                        <Badge variant="secondary">{book.type}</Badge>
-                      </div>
-
-                      <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                        <p className="text-sm text-orange-800">
-                          This book has been marked as obsolete and is no longer available for circulation.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-red-600">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
         </TabsContent>
@@ -738,56 +383,7 @@ export const BookManagement = () => {
           
           <div className="grid gap-4">
             {filteredBooks.filter(book => book.condition === "Binding").map((book) => (
-              <Card key={book.id} className="hover:shadow-md transition-shadow border-blue-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <BookOpen className="w-5 h-5 text-blue-600" />
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{book.title}</h3>
-                          <p className="text-sm text-muted-foreground">by {book.author}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Book #:</span> {book.bookNumber}
-                        </div>
-                        <div>
-                          <span className="font-medium">Sent Date:</span> {book.addedDate}
-                        </div>
-                        <div>
-                          <span className="font-medium">Expected Return:</span> TBD
-                        </div>
-                        <div>
-                          <span className="font-medium">Binding Cost:</span> ₹50 (Est.)
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">Binding</Badge>
-                        <Badge variant="outline">{book.type}</Badge>
-                      </div>
-
-                      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <p className="text-sm text-blue-800">
-                          This book is currently at the bindery for repair work. It will be available once the binding is complete.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" className="text-green-600">
-                        Mark Returned
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
         </TabsContent>
@@ -800,135 +396,28 @@ export const BookManagement = () => {
           
           <div className="grid gap-4">
             {missingRecords.map((record) => (
-              <Card key={record.id} className="hover:shadow-md transition-shadow border-red-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <BookOpen className="w-5 h-5 text-red-600" />
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{record.book.title}</h3>
-                          <p className="text-sm text-muted-foreground">by {record.book.author}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Book #:</span> {record.book.bookNumber}
-                        </div>
-                        <div>
-                          <span className="font-medium">Reported:</span> {record.reportedDate}
-                        </div>
-                        <div>
-                          <span className="font-medium">Book Price:</span> ₹{record.book.price}
-                        </div>
-                        <div>
-                          <span className="font-medium">Status:</span> {record.status}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Badge variant="destructive">Missing</Badge>
-                        <Badge variant="outline">{record.book.type}</Badge>
-                        {record.status === 'resolved' && (
-                          <Badge variant="default" className="bg-green-100 text-green-800">Resolved</Badge>
-                        )}
-                      </div>
-
-                      {/* Missing Person Details */}
-                      <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                        <h4 className="font-medium text-red-800 mb-2">Missing Person Details</h4>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <span className="font-medium">Type:</span> {record.missingPersonType}
-                          </div>
-                          <div>
-                            <span className="font-medium">Name:</span> {record.missingPersonDetails.name}
-                          </div>
-                          {record.missingPersonType === 'Student' && (
-                            <>
-                              <div>
-                                <span className="font-medium">Class:</span> {record.missingPersonDetails.class}
-                              </div>
-                              <div>
-                                <span className="font-medium">Roll No:</span> {record.missingPersonDetails.rollNo}
-                              </div>
-                            </>
-                          )}
-                          {record.missingPersonType === 'Teacher' && (
-                            <>
-                              <div>
-                                <span className="font-medium">Subject:</span> {record.missingPersonDetails.subject}
-                              </div>
-                              <div>
-                                <span className="font-medium">Staff Room:</span> {record.missingPersonDetails.staffRoom}
-                              </div>
-                            </>
-                          )}
-                          {record.missingPersonType === 'Non-Teaching' && (
-                            <div>
-                              <span className="font-medium">Designation:</span> {record.missingPersonDetails.designation}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Repayment Information */}
-                      {record.repaymentMode && (
-                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                          <h4 className="font-medium text-green-800 mb-2">Repayment Information</h4>
-                          <div className="text-sm">
-                            <div>
-                              <span className="font-medium">Mode:</span> {record.repaymentMode}
-                            </div>
-                            {record.repaymentMode === 'cash' && (
-                              <div>
-                                <span className="font-medium">Amount:</span> ₹{record.fineAmount}
-                              </div>
-                            )}
-                            {record.repaymentMode === 'book' && (
-                              <div>
-                                <span className="font-medium">Replacement:</span> New book added with same ID
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      {record.status === 'pending' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedMissingRecord(record);
-                            setIsRepaymentDialogOpen(true);
-                          }}
-                        >
-                          Process Repayment
-                        </Button>
-                      )}
-                      {record.receiptGenerated && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => generateReceipt(record)}
-                        >
-                          <Printer className="w-4 h-4 mr-1" />
-                          Print Receipt
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <MissingBookCard
+                key={record.id}
+                record={record}
+                onProcessRepayment={(record) => {
+                  setSelectedMissingRecord(record);
+                  setIsRepaymentDialogOpen(true);
+                }}
+                onGenerateReceipt={generateReceipt}
+              />
             ))}
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Repayment Dialog */}
+      <AddBookDialog
+        isOpen={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        newBook={newBook}
+        setNewBook={setNewBook}
+        onAddBook={handleAddBook}
+      />
+
       <RepaymentDialog 
         isOpen={isRepaymentDialogOpen}
         onClose={() => setIsRepaymentDialogOpen(false)}
