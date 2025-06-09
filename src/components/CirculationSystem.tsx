@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, BookOpen, User, Calendar, ArrowRight, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { WhatsAppMessaging } from "@/components/WhatsAppMessaging";
 
 interface Circulation {
   id: string;
@@ -87,17 +87,16 @@ export const CirculationSystem = () => {
     const returned = returnDate ? new Date(returnDate) : new Date();
     const diffTime = returned.getTime() - due.getTime();
     const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-    return diffDays > 7 ? (diffDays - 7) * 1 : 0; // ₹1 per day after 7 days
+    return diffDays > 7 ? (diffDays - 7) * 1 : 0;
   };
 
   const getDueDate = (issueDate: string) => {
     const issue = new Date(issueDate);
-    issue.setDate(issue.getDate() + 14); // 14 days loan period
+    issue.setDate(issue.getDate() + 14);
     return issue.toISOString().split('T')[0];
   };
 
   const handleIssueBook = () => {
-    // Simulate book and member lookup
     if (!issueForm.bookNumber || !issueForm.memberId) {
       toast({
         title: "Error",
@@ -110,10 +109,10 @@ export const CirculationSystem = () => {
     const newCirculation: Circulation = {
       id: Date.now().toString(),
       bookId: "new_book_id",
-      bookTitle: "Sample Book Title", // This would come from book lookup
+      bookTitle: "Sample Book Title",
       bookNumber: issueForm.bookNumber,
       memberId: issueForm.memberId,
-      memberName: "Sample Member", // This would come from member lookup
+      memberName: "Sample Member",
       memberCategory: "Student",
       issueDate: new Date().toISOString().split('T')[0],
       dueDate: getDueDate(new Date().toISOString().split('T')[0]),
@@ -284,7 +283,7 @@ export const CirculationSystem = () => {
         </CardContent>
       </Card>
 
-      {/* Active Circulations */}
+      {/* Active Circulations with WhatsApp messaging */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -336,6 +335,12 @@ export const CirculationSystem = () => {
                           Fine: ₹{circulation.fine}
                         </Badge>
                       )}
+                      <WhatsAppMessaging
+                        memberName={circulation.memberName}
+                        bookTitle={circulation.bookTitle}
+                        dueDate={circulation.dueDate}
+                        isOverdue={circulation.status === "overdue"}
+                      />
                       <Button 
                         size="sm" 
                         variant="outline"

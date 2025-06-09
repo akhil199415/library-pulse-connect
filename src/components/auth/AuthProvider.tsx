@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 interface User {
   id: string;
@@ -32,11 +32,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
 
   const login = (credentials: { email: string; password: string; name?: string }) => {
-    // Simple mock authentication - in a real app, this would call an API
+    // Temporarily accept any credentials for testing
     const newUser: User = {
       id: Date.now().toString(),
-      name: credentials.name || credentials.email.split('@')[0],
-      email: credentials.email,
+      name: credentials.name || credentials.email.split('@')[0] || 'Test User',
+      email: credentials.email || 'test@example.com',
     };
     setUser(newUser);
     localStorage.setItem('libraryUser', JSON.stringify(newUser));
@@ -48,12 +48,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   // Check for existing user on mount
-  useState(() => {
+  useEffect(() => {
     const savedUser = localStorage.getItem('libraryUser');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
-  });
+  }, []);
 
   const value = {
     user,
