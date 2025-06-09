@@ -11,7 +11,7 @@ import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 
 const MainApp = () => {
   const [activeModule, setActiveModule] = useState("dashboard");
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuth();
 
   const renderActiveModule = () => {
     switch (activeModule) {
@@ -31,7 +31,7 @@ const MainApp = () => {
   };
 
   if (!isAuthenticated) {
-    return <AuthForm onLogin={() => {}} />;
+    return <AuthForm onLogin={login} />;
   }
 
   return (
