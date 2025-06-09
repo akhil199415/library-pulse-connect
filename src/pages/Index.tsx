@@ -6,9 +6,12 @@ import { BookManagement } from "@/components/BookManagement";
 import { MemberManagement } from "@/components/MemberManagement";
 import { CirculationSystem } from "@/components/CirculationSystem";
 import { Reports } from "@/components/Reports";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 
-const Index = () => {
+const MainApp = () => {
   const [activeModule, setActiveModule] = useState("dashboard");
+  const { isAuthenticated } = useAuth();
 
   const renderActiveModule = () => {
     switch (activeModule) {
@@ -27,6 +30,10 @@ const Index = () => {
     }
   };
 
+  if (!isAuthenticated) {
+    return <AuthForm onLogin={() => {}} />;
+  }
+
   return (
     <div className="min-h-screen bg-background flex w-full">
       <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} />
@@ -36,6 +43,14 @@ const Index = () => {
         </div>
       </main>
     </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 };
 

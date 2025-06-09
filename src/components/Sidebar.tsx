@@ -9,6 +9,7 @@ import {
   LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface SidebarProps {
   activeModule: string;
@@ -16,6 +17,8 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ activeModule, setActiveModule }: SidebarProps) => {
+  const { user, logout } = useAuth();
+  
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "books", label: "Books", icon: BookOpen },
@@ -31,9 +34,9 @@ export const Sidebar = ({ activeModule, setActiveModule }: SidebarProps) => {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <BookOpen className="w-5 h-5 text-primary-foreground" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-lg font-bold text-foreground">LibraryMS</h1>
-            <p className="text-xs text-muted-foreground">Management System</p>
+            <p className="text-xs text-muted-foreground">Welcome, {user?.name}</p>
           </div>
         </div>
       </div>
@@ -60,7 +63,11 @@ export const Sidebar = ({ activeModule, setActiveModule }: SidebarProps) => {
           <Settings className="w-5 h-5" />
           Settings
         </Button>
-        <Button variant="ghost" className="w-full justify-start gap-3 h-11">
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start gap-3 h-11"
+          onClick={logout}
+        >
           <LogOut className="w-5 h-5" />
           Logout
         </Button>
