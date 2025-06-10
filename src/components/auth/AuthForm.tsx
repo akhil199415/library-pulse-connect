@@ -4,24 +4,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
+import { InstitutionType } from "@/components/auth/AuthProvider";
 
 interface AuthFormProps {
-  onLogin: (credentials: { email: string; password: string; name?: string }) => void;
+  onLogin: (credentials: { email: string; password: string }) => void;
+  onSignup: (credentials: { 
+    email: string; 
+    password: string; 
+    name: string;
+    institutionType: InstitutionType;
+    institutionName: string;
+  }) => void;
 }
 
-export const AuthForm = ({ onLogin }: AuthFormProps) => {
+export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    institutionType: "School" as InstitutionType,
+    institutionName: "",
   });
+
+  const institutionTypes: InstitutionType[] = [
+    "School",
+    "College", 
+    "Public Institution",
+    "Hotel",
+    "Hospital",
+    "NGO"
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(formData);
+    if (isSignUp) {
+      onSignup(formData);
+    } else {
+      onLogin({ email: formData.email, password: formData.password });
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,18 +76,54 @@ export const AuthForm = ({ onLogin }: AuthFormProps) => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required={isSignUp}
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required={isSignUp}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="institutionType">Institution Type</Label>
+                  <Select 
+                    value={formData.institutionType} 
+                    onValueChange={(value: InstitutionType) => 
+                      setFormData(prev => ({...prev, institutionType: value}))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select institution type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {institutionTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="institutionName">Institution Name</Label>
+                  <Input
+                    id="institutionName"
+                    name="institutionName"
+                    type="text"
+                    placeholder="Enter institution name"
+                    value={formData.institutionName}
+                    onChange={handleInputChange}
+                    required={isSignUp}
+                  />
+                </div>
+              </>
             )}
             
             <div className="space-y-2">

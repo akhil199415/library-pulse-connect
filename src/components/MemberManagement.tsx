@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,23 +8,31 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Edit, Trash2, Users, Calendar, Book } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface Member {
   id: string;
   memberId: string;
   name: string;
-  category: "Student" | "Teaching Staff" | "Non-Teaching Staff";
+  category?: "Student" | "Teaching Staff" | "Non-Teaching Staff";
   photo?: string;
-  // Student specific
+  // Student specific (School/College)
   class?: string;
   division?: string;
   rollNo?: string;
+  course?: string; // For college
+  year?: string; // For college
+  semester?: string; // For college
+  subject?: string; // For college student's subject
   // Teaching staff specific
-  subject?: string;
+  teachingSubject?: string;
   gender?: string;
   staffRoomNo?: string;
   // Non-teaching staff specific
   designation?: string;
+  // General member fields (for non-academic institutions)
+  place?: string;
+  mobileNumber?: string;
   // Common
   joinDate: string;
   booksIssued: number;
@@ -39,55 +46,12 @@ interface Member {
 }
 
 export const MemberManagement = () => {
-  const [members, setMembers] = useState<Member[]>([
-    {
-      id: "1",
-      memberId: "STU001234",
-      name: "Emily Parker",
-      category: "Student",
-      class: "XII",
-      division: "A",
-      rollNo: "25",
-      joinDate: "2024-01-15",
-      booksIssued: 2,
-      totalFines: 0,
-      issuedBooks: [
-        {
-          title: "Introduction to Computer Science",
-          issueDate: "2024-05-20",
-          dueDate: "2024-06-03",
-          isOverdue: false,
-        },
-        {
-          title: "Advanced Mathematics",
-          issueDate: "2024-05-18",
-          dueDate: "2024-06-01",
-          isOverdue: true,
-        },
-      ],
-    },
-    {
-      id: "2",
-      memberId: "TCH001567",
-      name: "Dr. Michael Brown",
-      category: "Teaching Staff",
-      subject: "Physics",
-      gender: "Male",
-      staffRoomNo: "205",
-      joinDate: "2023-08-20",
-      booksIssued: 1,
-      totalFines: 15,
-      issuedBooks: [
-        {
-          title: "Quantum Physics Fundamentals",
-          issueDate: "2024-05-10",
-          dueDate: "2024-05-24",
-          isOverdue: true,
-        },
-      ],
-    },
-  ]);
+  const { user } = useAuth();
+  const isAcademicInstitution = user?.institutionType === "School" || user?.institutionType === "College";
+  const isSchool = user?.institutionType === "School";
+  const isCollege = user?.institutionType === "College";
 
+  const [members, setMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -98,13 +62,26 @@ export const MemberManagement = () => {
     class: "",
     division: "",
     rollNo: "",
+    course: "",
+    year: "",
+    semester: "",
     subject: "",
+    teachingSubject: "",
     gender: "",
     staffRoomNo: "",
     designation: "",
+    place: "",
+    mobileNumber: "",
   });
 
-  const generateMemberId = (category: Member["category"]) => {
+  const generateMemberId = (category?: Member["category"]) => {
+    if (!isAcademicInstitution) {
+      // For non-academic institutions, use simple numbering
+      const lastMember = members[members.length - 1];
+      const lastNumber = lastMember ? parseInt(lastMember.memberId.slice(3)) : 1000;
+      return `MEM${String(lastNumber + 1).padStart(4, '0')}`;
+    }
+    
     const prefix = category === "Student" ? "STU" : category === "Teaching Staff" ? "TCH" : "NTC";
     const lastMember = members.filter(m => m.memberId.startsWith(prefix)).pop();
     const lastNumber = lastMember ? parseInt(lastMember.memberId.slice(3)) : 1233;
@@ -129,10 +106,16 @@ export const MemberManagement = () => {
       class: "",
       division: "",
       rollNo: "",
+      course: "",
+      year: "",
+      semester: "",
       subject: "",
+      teachingSubject: "",
       gender: "",
       staffRoomNo: "",
       designation: "",
+      place: "",
+      mobileNumber: "",
     });
   };
 
@@ -147,7 +130,7 @@ export const MemberManagement = () => {
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.memberId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === "all" || member.category === filterCategory;
+    const matchesCategory = !isAcademicInstitution || filterCategory === "all" || member.category === filterCategory;
     
     return matchesSearch && matchesCategory;
   });
@@ -155,7 +138,10 @@ export const MemberManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Member Management</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Member Management</h1>
+          <p className="text-muted-foreground">{user?.institutionName} - {user?.institutionType}</p>
+        </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
@@ -179,6 +165,25 @@ export const MemberManagement = () => {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select 
+                    value={newMember.gender} 
+                    onValueChange={(value) => setNewMember({...newMember, gender: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {isAcademicInstitution && (
+                <div>
                   <Label htmlFor="category">Category *</Label>
                   <Select 
                     value={newMember.category} 
@@ -194,66 +199,95 @@ export const MemberManagement = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              {newMember.category === "Student" && (
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="class">Class</Label>
-                    <Input
-                      id="class"
-                      value={newMember.class}
-                      onChange={(e) => setNewMember({...newMember, class: e.target.value})}
-                      placeholder="e.g., XII"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="division">Division</Label>
-                    <Input
-                      id="division"
-                      value={newMember.division}
-                      onChange={(e) => setNewMember({...newMember, division: e.target.value})}
-                      placeholder="e.g., A"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="rollNo">Roll No</Label>
-                    <Input
-                      id="rollNo"
-                      value={newMember.rollNo}
-                      onChange={(e) => setNewMember({...newMember, rollNo: e.target.value})}
-                      placeholder="e.g., 25"
-                    />
-                  </div>
-                </div>
               )}
 
-              {newMember.category === "Teaching Staff" && (
-                <div className="grid grid-cols-3 gap-4">
+              {isAcademicInstitution && newMember.category === "Student" && (
+                <>
+                  {isSchool && (
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="class">Class</Label>
+                        <Input
+                          id="class"
+                          value={newMember.class}
+                          onChange={(e) => setNewMember({...newMember, class: e.target.value})}
+                          placeholder="e.g., XII"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="division">Division</Label>
+                        <Input
+                          id="division"
+                          value={newMember.division}
+                          onChange={(e) => setNewMember({...newMember, division: e.target.value})}
+                          placeholder="e.g., A"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="rollNo">Roll No</Label>
+                        <Input
+                          id="rollNo"
+                          value={newMember.rollNo}
+                          onChange={(e) => setNewMember({...newMember, rollNo: e.target.value})}
+                          placeholder="e.g., 25"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {isCollege && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="course">Course</Label>
+                        <Input
+                          id="course"
+                          value={newMember.course}
+                          onChange={(e) => setNewMember({...newMember, course: e.target.value})}
+                          placeholder="e.g., B.Tech, MBA"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="year">Year/Semester</Label>
+                        <Input
+                          id="year"
+                          value={newMember.year}
+                          onChange={(e) => setNewMember({...newMember, year: e.target.value})}
+                          placeholder="e.g., 2nd Year, 4th Sem"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="subject">Subject/Branch</Label>
+                        <Input
+                          id="subject"
+                          value={newMember.subject}
+                          onChange={(e) => setNewMember({...newMember, subject: e.target.value})}
+                          placeholder="e.g., Computer Science"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="rollNo">Roll No</Label>
+                        <Input
+                          id="rollNo"
+                          value={newMember.rollNo}
+                          onChange={(e) => setNewMember({...newMember, rollNo: e.target.value})}
+                          placeholder="e.g., 2021CS001"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {isAcademicInstitution && newMember.category === "Teaching Staff" && (
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="subject">Subject</Label>
+                    <Label htmlFor="teachingSubject">Subject</Label>
                     <Input
-                      id="subject"
-                      value={newMember.subject}
-                      onChange={(e) => setNewMember({...newMember, subject: e.target.value})}
+                      id="teachingSubject"
+                      value={newMember.teachingSubject}
+                      onChange={(e) => setNewMember({...newMember, teachingSubject: e.target.value})}
                       placeholder="e.g., Physics"
                     />
-                  </div>
-                  <div>
-                    <Label htmlFor="gender">Gender</Label>
-                    <Select 
-                      value={newMember.gender} 
-                      onValueChange={(value) => setNewMember({...newMember, gender: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="staffRoomNo">Staff Room No</Label>
@@ -267,7 +301,7 @@ export const MemberManagement = () => {
                 </div>
               )}
 
-              {newMember.category === "Non-Teaching Staff" && (
+              {isAcademicInstitution && newMember.category === "Non-Teaching Staff" && (
                 <div>
                   <Label htmlFor="designation">Designation</Label>
                   <Input
@@ -276,6 +310,29 @@ export const MemberManagement = () => {
                     onChange={(e) => setNewMember({...newMember, designation: e.target.value})}
                     placeholder="e.g., Librarian"
                   />
+                </div>
+              )}
+
+              {!isAcademicInstitution && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="place">Place</Label>
+                    <Input
+                      id="place"
+                      value={newMember.place}
+                      onChange={(e) => setNewMember({...newMember, place: e.target.value})}
+                      placeholder="Enter place/location"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="mobileNumber">Mobile Number</Label>
+                    <Input
+                      id="mobileNumber"
+                      value={newMember.mobileNumber}
+                      onChange={(e) => setNewMember({...newMember, mobileNumber: e.target.value})}
+                      placeholder="Enter mobile number"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -308,17 +365,19 @@ export const MemberManagement = () => {
                 className="pl-10"
               />
             </div>
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="Student">Students</SelectItem>
-                <SelectItem value="Teaching Staff">Teaching Staff</SelectItem>
-                <SelectItem value="Non-Teaching Staff">Non-Teaching Staff</SelectItem>
-              </SelectContent>
-            </Select>
+            {isAcademicInstitution && (
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="Student">Students</SelectItem>
+                  <SelectItem value="Teaching Staff">Teaching Staff</SelectItem>
+                  <SelectItem value="Non-Teaching Staff">Non-Teaching Staff</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             <Button variant="outline">Clear Filters</Button>
           </div>
         </CardContent>
@@ -342,13 +401,13 @@ export const MemberManagement = () => {
                     <div>
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-semibold text-foreground">{member.name}</h3>
-                        <Badge variant="outline">{member.category}</Badge>
+                        {member.category && <Badge variant="outline">{member.category}</Badge>}
                       </div>
                       <p className="text-sm text-muted-foreground">ID: {member.memberId}</p>
                     </div>
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      {member.category === "Student" && (
+                      {isSchool && member.category === "Student" && (
                         <>
                           <div>
                             <span className="font-medium">Class:</span> {member.class}-{member.division}
@@ -358,10 +417,26 @@ export const MemberManagement = () => {
                           </div>
                         </>
                       )}
+                      {isCollege && member.category === "Student" && (
+                        <>
+                          <div>
+                            <span className="font-medium">Course:</span> {member.course}
+                          </div>
+                          <div>
+                            <span className="font-medium">Year:</span> {member.year}
+                          </div>
+                          <div>
+                            <span className="font-medium">Subject:</span> {member.subject}
+                          </div>
+                          <div>
+                            <span className="font-medium">Roll No:</span> {member.rollNo}
+                          </div>
+                        </>
+                      )}
                       {member.category === "Teaching Staff" && (
                         <>
                           <div>
-                            <span className="font-medium">Subject:</span> {member.subject}
+                            <span className="font-medium">Subject:</span> {member.teachingSubject}
                           </div>
                           <div>
                             <span className="font-medium">Staff Room:</span> {member.staffRoomNo}
@@ -373,6 +448,19 @@ export const MemberManagement = () => {
                           <span className="font-medium">Designation:</span> {member.designation}
                         </div>
                       )}
+                      {!isAcademicInstitution && (
+                        <>
+                          <div>
+                            <span className="font-medium">Place:</span> {member.place}
+                          </div>
+                          <div>
+                            <span className="font-medium">Mobile:</span> {member.mobileNumber}
+                          </div>
+                        </>
+                      )}
+                      <div>
+                        <span className="font-medium">Gender:</span> {member.gender}
+                      </div>
                       <div>
                         <span className="font-medium">Joined:</span> {member.joinDate}
                       </div>
