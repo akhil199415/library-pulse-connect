@@ -45,7 +45,25 @@ export const AddMemberDialog = ({
     mobileNumber: "",
   });
 
+  // Mock data - In a real app, this would come from settings/context
+  const schoolClasses = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+  const schoolDivisions = ["A", "B", "C", "D"];
+  const collegeeCourses = ["B.Tech", "MBA", "BCA", "MCA", "B.Com", "M.Com"];
+  const collegeYearSemesters = ["1st Year", "2nd Year", "3rd Year", "4th Year", "1st Semester", "2nd Semester", "3rd Semester", "4th Semester"];
+  const collegeSubjects = ["Computer Science", "Information Technology", "Electronics", "Mechanical", "Civil", "Finance", "Marketing"];
+
   const handleAddMember = () => {
+    // Validation for required fields
+    if (!newMember.name.trim()) {
+      alert("Name is required");
+      return;
+    }
+    
+    if (!newMember.mobileNumber.trim()) {
+      alert("Mobile number is required");
+      return;
+    }
+
     const member: Member = {
       id: Date.now().toString(),
       memberId: generateMemberId(newMember.category),
@@ -97,8 +115,22 @@ export const AddMemberDialog = ({
                 value={newMember.name}
                 onChange={(e) => setNewMember({...newMember, name: e.target.value})}
                 placeholder="Enter full name"
+                required
               />
             </div>
+            <div>
+              <Label htmlFor="mobileNumber">Mobile Number *</Label>
+              <Input
+                id="mobileNumber"
+                value={newMember.mobileNumber}
+                onChange={(e) => setNewMember({...newMember, mobileNumber: e.target.value})}
+                placeholder="Enter mobile number"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="gender">Gender</Label>
               <Select 
@@ -115,6 +147,17 @@ export const AddMemberDialog = ({
                 </SelectContent>
               </Select>
             </div>
+            {!isAcademicInstitution && (
+              <div>
+                <Label htmlFor="place">Place</Label>
+                <Input
+                  id="place"
+                  value={newMember.place}
+                  onChange={(e) => setNewMember({...newMember, place: e.target.value})}
+                  placeholder="Enter place/location"
+                />
+              </div>
+            )}
           </div>
 
           {isAcademicInstitution && (
@@ -142,21 +185,35 @@ export const AddMemberDialog = ({
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="class">Class</Label>
-                    <Input
-                      id="class"
-                      value={newMember.class}
-                      onChange={(e) => setNewMember({...newMember, class: e.target.value})}
-                      placeholder="e.g., XII"
-                    />
+                    <Select 
+                      value={newMember.class} 
+                      onValueChange={(value) => setNewMember({...newMember, class: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {schoolClasses.map((cls) => (
+                          <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="division">Division</Label>
-                    <Input
-                      id="division"
-                      value={newMember.division}
-                      onChange={(e) => setNewMember({...newMember, division: e.target.value})}
-                      placeholder="e.g., A"
-                    />
+                    <Select 
+                      value={newMember.division} 
+                      onValueChange={(value) => setNewMember({...newMember, division: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select division" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {schoolDivisions.map((div) => (
+                          <SelectItem key={div} value={div}>{div}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="rollNo">Roll No</Label>
@@ -174,30 +231,51 @@ export const AddMemberDialog = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="course">Course</Label>
-                    <Input
-                      id="course"
-                      value={newMember.course}
-                      onChange={(e) => setNewMember({...newMember, course: e.target.value})}
-                      placeholder="e.g., B.Tech, MBA"
-                    />
+                    <Select 
+                      value={newMember.course} 
+                      onValueChange={(value) => setNewMember({...newMember, course: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {collegeeCourses.map((course) => (
+                          <SelectItem key={course} value={course}>{course}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="year">Year/Semester</Label>
-                    <Input
-                      id="year"
-                      value={newMember.year}
-                      onChange={(e) => setNewMember({...newMember, year: e.target.value})}
-                      placeholder="e.g., 2nd Year, 4th Sem"
-                    />
+                    <Select 
+                      value={newMember.year} 
+                      onValueChange={(value) => setNewMember({...newMember, year: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select year/semester" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {collegeYearSemesters.map((yearSem) => (
+                          <SelectItem key={yearSem} value={yearSem}>{yearSem}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="subject">Subject/Branch</Label>
-                    <Input
-                      id="subject"
-                      value={newMember.subject}
-                      onChange={(e) => setNewMember({...newMember, subject: e.target.value})}
-                      placeholder="e.g., Computer Science"
-                    />
+                    <Select 
+                      value={newMember.subject} 
+                      onValueChange={(value) => setNewMember({...newMember, subject: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select subject/branch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {collegeSubjects.map((subject) => (
+                          <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="rollNo">Roll No</Label>
@@ -245,29 +323,6 @@ export const AddMemberDialog = ({
                 onChange={(e) => setNewMember({...newMember, designation: e.target.value})}
                 placeholder="e.g., Librarian"
               />
-            </div>
-          )}
-
-          {!isAcademicInstitution && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="place">Place</Label>
-                <Input
-                  id="place"
-                  value={newMember.place}
-                  onChange={(e) => setNewMember({...newMember, place: e.target.value})}
-                  placeholder="Enter place/location"
-                />
-              </div>
-              <div>
-                <Label htmlFor="mobileNumber">Mobile Number</Label>
-                <Input
-                  id="mobileNumber"
-                  value={newMember.mobileNumber}
-                  onChange={(e) => setNewMember({...newMember, mobileNumber: e.target.value})}
-                  placeholder="Enter mobile number"
-                />
-              </div>
             </div>
           )}
 

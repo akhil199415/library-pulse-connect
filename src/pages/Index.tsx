@@ -6,6 +6,7 @@ import { BookManagement } from "@/components/BookManagement";
 import { MemberManagement } from "@/components/MemberManagement";
 import { CirculationSystem } from "@/components/CirculationSystem";
 import { Reports } from "@/components/Reports";
+import { Settings } from "@/components/Settings";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 
@@ -25,6 +26,8 @@ const MainApp = () => {
         return <CirculationSystem />;
       case "reports":
         return <Reports />;
+      case "settings":
+        return <Settings />;
       default:
         return <Dashboard />;
     }
