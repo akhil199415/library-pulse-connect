@@ -25,6 +25,7 @@ export const Sidebar = ({ activeModule, setActiveModule }: SidebarProps) => {
     { id: "members", label: "Members", icon: Users },
     { id: "circulation", label: "Circulation", icon: RefreshCcw },
     { id: "reports", label: "Reports", icon: BarChart3 },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   return (
@@ -59,10 +60,6 @@ export const Sidebar = ({ activeModule, setActiveModule }: SidebarProps) => {
       </nav>
 
       <div className="absolute bottom-4 left-4 right-4 space-y-2">
-        <Button variant="ghost" className="w-full justify-start gap-3 h-11">
-          <Settings className="w-5 h-5" />
-          Settings
-        </Button>
         <Button 
           variant="ghost" 
           className="w-full justify-start gap-3 h-11"

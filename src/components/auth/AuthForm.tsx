@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
 import { InstitutionType } from "@/components/auth/AuthProvider";
+import { OTPVerification } from "@/components/auth/OTPVerification";
+import { PasswordSetup } from "@/components/auth/PasswordSetup";
+import { ForgotPassword } from "@/components/auth/ForgotPassword";
 
 interface AuthFormProps {
   onLogin: (credentials: { email: string; password: string }) => void;
@@ -19,9 +22,12 @@ interface AuthFormProps {
   }) => void;
 }
 
+type AuthStep = 'auth' | 'signup-otp' | 'signup-password' | 'forgot-password' | 'forgot-otp' | 'reset-password' | 'success';
+
 export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [currentStep, setCurrentStep] = useState<AuthStep>('auth');
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -39,13 +45,58 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
     "NGO"
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSignInSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSignUp) {
-      onSignup(formData);
-    } else {
-      onLogin({ email: formData.email, password: formData.password });
-    }
+    onLogin({ email: formData.email, password: formData.password });
+  };
+
+  const handleSignUpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Move to OTP verification step
+    setCurrentStep('signup-otp');
+  };
+
+  const handleSignUpOTPVerified = () => {
+    setCurrentStep('signup-password');
+  };
+
+  const handlePasswordSet = (password: string) => {
+    const signupData = {
+      ...formData,
+      password
+    };
+    onSignup(signupData);
+    setCurrentStep('success');
+    
+    // Redirect to main app after success message
+    setTimeout(() => {
+      setCurrentStep('auth');
+    }, 2000);
+  };
+
+  const handleForgotPassword = () => {
+    setCurrentStep('forgot-password');
+  };
+
+  const handleForgotOTPSent = (email: string) => {
+    setFormData(prev => ({ ...prev, email }));
+    setCurrentStep('forgot-otp');
+  };
+
+  const handleForgotOTPVerified = () => {
+    setCurrentStep('reset-password');
+  };
+
+  const handlePasswordReset = (newPassword: string) => {
+    // In a real app, you would update the password in your backend
+    console.log('Password reset for:', formData.email);
+    setCurrentStep('success');
+    
+    // Redirect to sign in after success
+    setTimeout(() => {
+      setCurrentStep('auth');
+      setIsSignUp(false);
+    }, 2000);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +106,85 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
     }));
   };
 
+  const goBackToAuth = () => {
+    setCurrentStep('auth');
+  };
+
+  // OTP verification steps
+  if (currentStep === 'signup-otp') {
+    return (
+      <OTPVerification
+        email={formData.email}
+        onVerifySuccess={handleSignUpOTPVerified}
+        onBack={goBackToAuth}
+        title="Verify Your Email"
+        description="We've sent a 6-digit verification code to:"
+      />
+    );
+  }
+
+  if (currentStep === 'signup-password') {
+    return (
+      <PasswordSetup
+        email={formData.email}
+        onPasswordSet={handlePasswordSet}
+        onBack={() => setCurrentStep('signup-otp')}
+        isReset={false}
+      />
+    );
+  }
+
+  if (currentStep === 'forgot-password') {
+    return (
+      <ForgotPassword
+        onSendOTP={handleForgotOTPSent}
+        onBack={goBackToAuth}
+      />
+    );
+  }
+
+  if (currentStep === 'forgot-otp') {
+    return (
+      <OTPVerification
+        email={formData.email}
+        onVerifySuccess={handleForgotOTPVerified}
+        onBack={() => setCurrentStep('forgot-password')}
+        title="Reset Password"
+        description="We've sent a 6-digit verification code to:"
+      />
+    );
+  }
+
+  if (currentStep === 'reset-password') {
+    return (
+      <PasswordSetup
+        email={formData.email}
+        onPasswordSet={handlePasswordReset}
+        onBack={() => setCurrentStep('forgot-otp')}
+        isReset={true}
+      />
+    );
+  }
+
+  if (currentStep === 'success') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserPlus className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">Success!</h2>
+            <p className="text-muted-foreground">
+              {isSignUp ? 'Account created successfully!' : 'Password updated successfully!'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Main auth form
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -74,7 +204,7 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={isSignUp ? handleSignUpSubmit : handleSignInSubmit} className="space-y-4">
             {isSignUp && (
               <>
                 <div className="space-y-2">
@@ -139,39 +269,41 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+            {!isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
             
             <Button type="submit" className="w-full">
               {isSignUp ? (
                 <>
                   <UserPlus className="w-4 h-4 mr-2" />
-                  Create Account
+                  Continue with Email Verification
                 </>
               ) : (
                 <>
@@ -181,6 +313,18 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
               )}
             </Button>
           </form>
+          
+          {!isSignUp && (
+            <div className="mt-4 text-center">
+              <Button
+                variant="link"
+                onClick={handleForgotPassword}
+                className="text-sm"
+              >
+                Forgot Password?
+              </Button>
+            </div>
+          )}
           
           <div className="mt-4 text-center">
             <Button
