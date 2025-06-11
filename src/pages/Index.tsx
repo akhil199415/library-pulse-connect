@@ -8,9 +8,9 @@ import { CirculationSystem } from "@/components/CirculationSystem";
 import { Reports } from "@/components/Reports";
 import { Settings } from "@/components/Settings";
 import { AuthForm } from "@/components/auth/AuthForm";
-import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
 
-const MainApp = () => {
+const Index = () => {
   const [activeModule, setActiveModule] = useState("dashboard");
   const { isAuthenticated, login, signup } = useAuth();
 
@@ -46,14 +46,6 @@ const MainApp = () => {
         </div>
       </main>
     </div>
-  );
-};
-
-const Index = () => {
-  return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
   );
 };
 
