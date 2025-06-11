@@ -1,10 +1,9 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Print, Receipt } from "lucide-react";
+import { Printer, Receipt } from "lucide-react";
 
 interface OverdueFineReceiptProps {
   isOpen: boolean;
@@ -144,7 +143,7 @@ export const OverdueFineReceipt = ({
               Cancel Overdue
             </Button>
             <Button onClick={handlePrintReceipt} className="gap-2">
-              <Print className="w-4 h-4" />
+              <Printer className="w-4 h-4" />
               Generate & Print Receipt
             </Button>
           </div>
