@@ -1,15 +1,15 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Search, BookOpen, User, Calendar, ArrowRight, RotateCcw } from "lucide-react";
+import { BookOpen, User, Calendar, ArrowRight, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { WhatsAppMessaging } from "@/components/WhatsAppMessaging";
 import { OverdueFineReceipt } from "@/components/OverdueFineReceipt";
+import { CirculationFilters } from "@/components/circulation/CirculationFilters";
 
 interface Circulation {
   id: string;
@@ -72,6 +72,9 @@ export const CirculationSystem = () => {
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [isIssueDialogOpen, setIsIssueDialogOpen] = useState(false);
   const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
   const [isOverdueFineDialogOpen, setIsOverdueFineDialogOpen] = useState(false);
@@ -157,7 +160,6 @@ export const CirculationSystem = () => {
       return;
     }
 
-    // Check if book is overdue
     if (circulation.status === "overdue" && circulation.fine > 0) {
       setSelectedOverdueCirculation(circulation);
       setIsOverdueFineDialogOpen(true);
@@ -165,7 +167,6 @@ export const CirculationSystem = () => {
       return;
     }
 
-    // Normal return without fine
     const returnDate = new Date().toISOString().split('T')[0];
     const fine = calculateFine(circulation.dueDate, returnDate);
 
@@ -189,7 +190,6 @@ export const CirculationSystem = () => {
       setSelectedOverdueCirculation(circulation);
       setIsOverdueFineDialogOpen(true);
     } else {
-      // Normal return
       handleRegularReturn(circulation);
     }
   };
@@ -248,12 +248,25 @@ export const CirculationSystem = () => {
   };
 
   const filteredCirculations = circulations.filter(circulation => {
-    return (
-      circulation.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      circulation.bookNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      circulation.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      circulation.memberId.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const matchesSearch = circulation.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         circulation.bookNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         circulation.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         circulation.memberId.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === "all" || circulation.status === filterStatus;
+    
+    let matchesDate = true;
+    if (dateFrom || dateTo) {
+      const issueDate = new Date(circulation.issueDate);
+      if (dateFrom) {
+        matchesDate = matchesDate && issueDate >= new Date(dateFrom);
+      }
+      if (dateTo) {
+        matchesDate = matchesDate && issueDate <= new Date(dateTo);
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const activeCirculations = filteredCirculations.filter(c => c.status !== "returned");
@@ -341,23 +354,16 @@ export const CirculationSystem = () => {
         </div>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Search Circulation Records</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by book title, book number, member name, or member ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <CirculationFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        dateFrom={dateFrom}
+        setDateFrom={setDateFrom}
+        dateTo={dateTo}
+        setDateTo={setDateTo}
+      />
 
       {/* Active Circulations with WhatsApp messaging */}
       <Card>
@@ -487,7 +493,6 @@ export const CirculationSystem = () => {
         </CardContent>
       </Card>
 
-      {/* Overdue Fine Receipt Dialog */}
       {selectedOverdueCirculation && (
         <OverdueFineReceipt
           isOpen={isOverdueFineDialogOpen}

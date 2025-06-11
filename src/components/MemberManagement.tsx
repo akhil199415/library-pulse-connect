@@ -5,7 +5,6 @@ import { Users } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Member } from "@/types/member";
 import { AddMemberDialog } from "@/components/member/AddMemberDialog";
-import { MemberFilters } from "@/components/member/MemberFilters";
 import { MemberCard } from "@/components/member/MemberCard";
 
 export const MemberManagement = () => {
@@ -15,15 +14,10 @@ export const MemberManagement = () => {
   const isCollege = user?.institutionType === "College";
 
   const [members, setMembers] = useState<Member[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const generateMemberId = (category?: Member["category"]) => {
     if (!isAcademicInstitution) {
-      // For non-academic institutions, use simple numbering
       const lastMember = members[members.length - 1];
       const lastNumber = lastMember ? parseInt(lastMember.memberId.slice(3)) : 1000;
       return `MEM${String(lastNumber + 1).padStart(4, '0')}`;
@@ -38,26 +32,6 @@ export const MemberManagement = () => {
   const handleAddMember = (member: Member) => {
     setMembers([...members, member]);
   };
-
-  const filteredMembers = members.filter(member => {
-    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.memberId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.cardNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !isAcademicInstitution || filterCategory === "all" || member.category === filterCategory;
-    
-    let matchesDate = true;
-    if (dateFrom || dateTo) {
-      const memberDate = new Date(member.joinDate);
-      if (dateFrom) {
-        matchesDate = matchesDate && memberDate >= new Date(dateFrom);
-      }
-      if (dateTo) {
-        matchesDate = matchesDate && memberDate <= new Date(dateTo);
-      }
-    }
-    
-    return matchesSearch && matchesCategory && matchesDate;
-  });
 
   return (
     <div className="space-y-6">
@@ -78,20 +52,8 @@ export const MemberManagement = () => {
         />
       </div>
 
-      <MemberFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        filterCategory={filterCategory}
-        setFilterCategory={setFilterCategory}
-        isAcademicInstitution={isAcademicInstitution}
-        dateFrom={dateFrom}
-        setDateFrom={setDateFrom}
-        dateTo={dateTo}
-        setDateTo={setDateTo}
-      />
-
       <div className="grid gap-4">
-        {filteredMembers.map((member) => (
+        {members.map((member) => (
           <MemberCard
             key={member.id}
             member={member}
@@ -102,12 +64,12 @@ export const MemberManagement = () => {
         ))}
       </div>
 
-      {filteredMembers.length === 0 && (
+      {members.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
             <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">No members found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
+            <p className="text-muted-foreground">Add members to get started.</p>
           </CardContent>
         </Card>
       )}

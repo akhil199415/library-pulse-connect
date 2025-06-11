@@ -77,20 +77,14 @@ export const OverdueFineReceipt = ({
   const handleConfirmReturn = () => {
     if (receiptNo.trim()) {
       onReceiptGenerated(receiptNo);
-      setIsOpen(false);
-      setShowReceiptInput(false);
-      setReceiptNo("");
+      resetDialog();
     }
   };
 
   const handleCancelOverdue = () => {
     if (cancelReason.trim()) {
       onCancelOverdue(cancelReason);
-      setIsOpen(false);
-      setShowReceiptInput(false);
-      setReceiptNo("");
-      setShowCancelConfirmation(false);
-      setCancelReason("");
+      resetDialog();
     }
   };
 
@@ -110,39 +104,39 @@ export const OverdueFineReceipt = ({
         </DialogHeader>
         
         {!showCancelConfirmation ? (
-          <>
-            <div ref={receiptRef} className="receipt">
-              <div className="header">
+          <div className="space-y-4">
+            <div ref={receiptRef} className="receipt border rounded-lg p-4 bg-gray-50">
+              <div className="header text-center border-b-2 border-gray-800 pb-2 mb-4">
                 <h3 className="text-lg font-bold">Library Fine Receipt</h3>
                 <p className="text-sm text-muted-foreground">Overdue Book Return</p>
               </div>
               
-              <div className="space-y-3">
-                <div className="row">
+              <div className="space-y-2">
+                <div className="flex justify-between">
                   <span>Receipt No:</span>
                   <span className="font-mono">{receiptNo || "___________"}</span>
                 </div>
-                <div className="row">
+                <div className="flex justify-between">
                   <span>Date:</span>
                   <span>{new Date().toLocaleDateString()}</span>
                 </div>
-                <div className="row">
+                <div className="flex justify-between">
                   <span>Member:</span>
                   <span>{memberName}</span>
                 </div>
-                <div className="row">
+                <div className="flex justify-between">
                   <span>Member ID:</span>
                   <span>{memberId}</span>
                 </div>
-                <div className="row">
+                <div className="flex justify-between">
                   <span>Book:</span>
                   <span className="text-right">{bookTitle}</span>
                 </div>
-                <div className="row">
+                <div className="flex justify-between">
                   <span>Book No:</span>
                   <span>{bookNumber}</span>
                 </div>
-                <div className="row total">
+                <div className="flex justify-between border-t-2 border-gray-800 pt-2 mt-4 font-bold">
                   <span>Overdue Fine:</span>
                   <span>₹{fineAmount}</span>
                 </div>
@@ -150,7 +144,7 @@ export const OverdueFineReceipt = ({
             </div>
 
             {!showReceiptInput ? (
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={resetDialog}>
                   Cancel
                 </Button>
@@ -163,7 +157,7 @@ export const OverdueFineReceipt = ({
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4 pt-4">
+              <div className="space-y-4">
                 <div>
                   <Label htmlFor="receiptInput">Enter Receipt No *</Label>
                   <Input
@@ -189,7 +183,7 @@ export const OverdueFineReceipt = ({
                 </div>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <div className="space-y-4">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
