@@ -1,7 +1,9 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Printer, Receipt } from "lucide-react";
 
@@ -14,7 +16,7 @@ interface OverdueFineReceiptProps {
   memberId: string;
   fineAmount: number;
   onReceiptGenerated: (receiptNo: string) => void;
-  onCancelOverdue: () => void;
+  onCancelOverdue: (reason: string) => void;
 }
 
 export const OverdueFineReceipt = ({
@@ -30,6 +32,8 @@ export const OverdueFineReceipt = ({
 }: OverdueFineReceiptProps) => {
   const [receiptNo, setReceiptNo] = useState("");
   const [showReceiptInput, setShowReceiptInput] = useState(false);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const generateReceiptNo = () => {
@@ -80,96 +84,139 @@ export const OverdueFineReceipt = ({
   };
 
   const handleCancelOverdue = () => {
-    const confirmed = window.confirm(`Are you sure to cancel the overdue of ₹${fineAmount}?`);
-    if (confirmed) {
-      onCancelOverdue();
+    if (cancelReason.trim()) {
+      onCancelOverdue(cancelReason);
       setIsOpen(false);
       setShowReceiptInput(false);
       setReceiptNo("");
+      setShowCancelConfirmation(false);
+      setCancelReason("");
     }
   };
 
+  const resetDialog = () => {
+    setIsOpen(false);
+    setShowReceiptInput(false);
+    setReceiptNo("");
+    setShowCancelConfirmation(false);
+    setCancelReason("");
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={resetDialog}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Overdue Fine Receipt</DialogTitle>
         </DialogHeader>
         
-        <div ref={receiptRef} className="receipt">
-          <div className="header">
-            <h3 className="text-lg font-bold">Library Fine Receipt</h3>
-            <p className="text-sm text-muted-foreground">Overdue Book Return</p>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="row">
-              <span>Receipt No:</span>
-              <span className="font-mono">{receiptNo || "___________"}</span>
+        {!showCancelConfirmation ? (
+          <>
+            <div ref={receiptRef} className="receipt">
+              <div className="header">
+                <h3 className="text-lg font-bold">Library Fine Receipt</h3>
+                <p className="text-sm text-muted-foreground">Overdue Book Return</p>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="row">
+                  <span>Receipt No:</span>
+                  <span className="font-mono">{receiptNo || "___________"}</span>
+                </div>
+                <div className="row">
+                  <span>Date:</span>
+                  <span>{new Date().toLocaleDateString()}</span>
+                </div>
+                <div className="row">
+                  <span>Member:</span>
+                  <span>{memberName}</span>
+                </div>
+                <div className="row">
+                  <span>Member ID:</span>
+                  <span>{memberId}</span>
+                </div>
+                <div className="row">
+                  <span>Book:</span>
+                  <span className="text-right">{bookTitle}</span>
+                </div>
+                <div className="row">
+                  <span>Book No:</span>
+                  <span>{bookNumber}</span>
+                </div>
+                <div className="row total">
+                  <span>Overdue Fine:</span>
+                  <span>₹{fineAmount}</span>
+                </div>
+              </div>
             </div>
-            <div className="row">
-              <span>Date:</span>
-              <span>{new Date().toLocaleDateString()}</span>
-            </div>
-            <div className="row">
-              <span>Member:</span>
-              <span>{memberName}</span>
-            </div>
-            <div className="row">
-              <span>Member ID:</span>
-              <span>{memberId}</span>
-            </div>
-            <div className="row">
-              <span>Book:</span>
-              <span className="text-right">{bookTitle}</span>
-            </div>
-            <div className="row">
-              <span>Book No:</span>
-              <span>{bookNumber}</span>
-            </div>
-            <div className="row total">
-              <span>Overdue Fine:</span>
-              <span>₹{fineAmount}</span>
-            </div>
-          </div>
-        </div>
 
-        {!showReceiptInput ? (
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setIsOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="outline" onClick={handleCancelOverdue}>
-              Cancel Overdue
-            </Button>
-            <Button onClick={handlePrintReceipt} className="gap-2">
-              <Printer className="w-4 h-4" />
-              Generate & Print Receipt
-            </Button>
-          </div>
+            {!showReceiptInput ? (
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={resetDialog}>
+                  Cancel
+                </Button>
+                <Button variant="outline" onClick={() => setShowCancelConfirmation(true)}>
+                  Cancel Overdue
+                </Button>
+                <Button onClick={handlePrintReceipt} className="gap-2">
+                  <Printer className="w-4 h-4" />
+                  Generate & Print Receipt
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4 pt-4">
+                <div>
+                  <Label htmlFor="receiptInput">Enter Receipt No *</Label>
+                  <Input
+                    id="receiptInput"
+                    value={receiptNo}
+                    onChange={(e) => setReceiptNo(e.target.value)}
+                    placeholder="Enter receipt number"
+                    className="font-mono"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={resetDialog}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleConfirmReturn}
+                    disabled={!receiptNo.trim()}
+                    className="gap-2"
+                  >
+                    <Receipt className="w-4 h-4" />
+                    Return Book
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm font-medium text-yellow-800">
+                Are you sure you want to cancel the overdue of ₹{fineAmount}?
+              </p>
+            </div>
             <div>
-              <Label htmlFor="receiptInput">Enter Receipt No *</Label>
-              <Input
-                id="receiptInput"
-                value={receiptNo}
-                onChange={(e) => setReceiptNo(e.target.value)}
-                placeholder="Enter receipt number"
-                className="font-mono"
+              <Label htmlFor="cancelReason">Reason for cancellation *</Label>
+              <Textarea
+                id="cancelReason"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Enter reason for cancelling the overdue fine"
+                rows={3}
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsOpen(false)}>
-                Cancel
+              <Button variant="outline" onClick={() => setShowCancelConfirmation(false)}>
+                No
               </Button>
               <Button 
-                onClick={handleConfirmReturn}
-                disabled={!receiptNo.trim()}
-                className="gap-2"
+                onClick={handleCancelOverdue}
+                disabled={!cancelReason.trim()}
+                variant="destructive"
               >
-                <Receipt className="w-4 h-4" />
-                Return Book
+                Yes, Cancel Overdue
               </Button>
             </div>
           </div>

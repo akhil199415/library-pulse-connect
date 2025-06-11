@@ -2,6 +2,7 @@
 export interface Member {
   id: string;
   memberId: string;
+  cardNumber: string;
   name: string;
   category?: "Student" | "Teaching Staff" | "Non-Teaching Staff";
   photo?: string;

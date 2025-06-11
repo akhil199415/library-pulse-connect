@@ -17,6 +17,8 @@ export const MemberManagement = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const generateMemberId = (category?: Member["category"]) => {
@@ -39,10 +41,22 @@ export const MemberManagement = () => {
 
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.memberId.toLowerCase().includes(searchTerm.toLowerCase());
+                         member.memberId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         member.cardNumber.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !isAcademicInstitution || filterCategory === "all" || member.category === filterCategory;
     
-    return matchesSearch && matchesCategory;
+    let matchesDate = true;
+    if (dateFrom || dateTo) {
+      const memberDate = new Date(member.joinDate);
+      if (dateFrom) {
+        matchesDate = matchesDate && memberDate >= new Date(dateFrom);
+      }
+      if (dateTo) {
+        matchesDate = matchesDate && memberDate <= new Date(dateTo);
+      }
+    }
+    
+    return matchesSearch && matchesCategory && matchesDate;
   });
 
   return (
@@ -60,6 +74,7 @@ export const MemberManagement = () => {
           isAcademicInstitution={isAcademicInstitution}
           isSchool={isSchool}
           isCollege={isCollege}
+          existingMembers={members}
         />
       </div>
 
@@ -69,6 +84,10 @@ export const MemberManagement = () => {
         filterCategory={filterCategory}
         setFilterCategory={setFilterCategory}
         isAcademicInstitution={isAcademicInstitution}
+        dateFrom={dateFrom}
+        setDateFrom={setDateFrom}
+        dateTo={dateTo}
+        setDateTo={setDateTo}
       />
 
       <div className="grid gap-4">

@@ -8,6 +8,7 @@ import { CirculationSystem } from "@/components/CirculationSystem";
 import { Reports } from "@/components/Reports";
 import { Settings } from "@/components/Settings";
 import { AuthForm } from "@/components/auth/AuthForm";
+import { InstitutionHeader } from "@/components/InstitutionHeader";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 const Index = () => {
@@ -40,9 +41,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex w-full">
       <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} />
-      <main className="flex-1 p-6 ml-64">
-        <div className="max-w-7xl mx-auto">
-          {renderActiveModule()}
+      <main className="flex-1 ml-64">
+        <InstitutionHeader />
+        <div className="p-6">
+          <div className="max-w-7xl mx-auto">
+            {renderActiveModule()}
+          </div>
         </div>
       </main>
     </div>

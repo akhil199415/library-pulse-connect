@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
@@ -11,6 +12,10 @@ interface MemberFiltersProps {
   filterCategory: string;
   setFilterCategory: (category: string) => void;
   isAcademicInstitution: boolean;
+  dateFrom: string;
+  setDateFrom: (date: string) => void;
+  dateTo: string;
+  setDateTo: (date: string) => void;
 }
 
 export const MemberFilters = ({ 
@@ -18,15 +23,26 @@ export const MemberFilters = ({
   setSearchTerm, 
   filterCategory, 
   setFilterCategory, 
-  isAcademicInstitution 
+  isAcademicInstitution,
+  dateFrom,
+  setDateFrom,
+  dateTo,
+  setDateTo
 }: MemberFiltersProps) => {
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterCategory("all");
+    setDateFrom("");
+    setDateTo("");
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Search & Filter</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -49,8 +65,28 @@ export const MemberFilters = ({
               </SelectContent>
             </Select>
           )}
-          <Button variant="outline">Clear Filters</Button>
+          <div>
+            <Label htmlFor="dateFrom" className="text-xs">From Date</Label>
+            <Input
+              id="dateFrom"
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              placeholder="From date"
+            />
+          </div>
+          <div>
+            <Label htmlFor="dateTo" className="text-xs">To Date</Label>
+            <Input
+              id="dateTo"
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              placeholder="To date"
+            />
+          </div>
         </div>
+        <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
       </CardContent>
     </Card>
   );

@@ -20,6 +20,12 @@ interface SettingsContextType {
   setYearSemesters: (yearSemesters: ConfigItem[]) => void;
   subjects: ConfigItem[];
   setSubjects: (subjects: ConfigItem[]) => void;
+  
+  // General settings
+  designations: ConfigItem[];
+  setDesignations: (designations: ConfigItem[]) => void;
+  institutionLogo: string;
+  setInstitutionLogo: (logo: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -91,6 +97,19 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     { id: "7", name: "Marketing" }
   ]);
 
+  // General settings
+  const [designations, setDesignations] = useState<ConfigItem[]>([
+    { id: "1", name: "Manager" },
+    { id: "2", name: "Doctor" },
+    { id: "3", name: "Nurse" },
+    { id: "4", name: "Technician" },
+    { id: "5", name: "Administrator" },
+    { id: "6", name: "Clerk" },
+    { id: "7", name: "Security" }
+  ]);
+
+  const [institutionLogo, setInstitutionLogo] = useState<string>("");
+
   return (
     <SettingsContext.Provider value={{
       classes,
@@ -102,7 +121,11 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       yearSemesters,
       setYearSemesters,
       subjects,
-      setSubjects
+      setSubjects,
+      designations,
+      setDesignations,
+      institutionLogo,
+      setInstitutionLogo
     }}>
       {children}
     </SettingsContext.Provider>

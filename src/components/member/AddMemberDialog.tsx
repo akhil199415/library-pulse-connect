@@ -17,6 +17,7 @@ interface AddMemberDialogProps {
   isAcademicInstitution: boolean;
   isSchool: boolean;
   isCollege: boolean;
+  existingMembers: Member[];
 }
 
 export const AddMemberDialog = ({
@@ -26,18 +27,21 @@ export const AddMemberDialog = ({
   generateMemberId,
   isAcademicInstitution,
   isSchool,
-  isCollege
+  isCollege,
+  existingMembers
 }: AddMemberDialogProps) => {
   const {
     classes,
     divisions,
     courses,
     yearSemesters,
-    subjects
+    subjects,
+    designations
   } = useSettings();
 
   const [newMember, setNewMember] = useState({
     name: "",
+    cardNumber: "",
     category: "Student" as Member["category"],
     class: "",
     division: "",
@@ -54,21 +58,47 @@ export const AddMemberDialog = ({
     mobileNumber: "",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateCardNumber = (cardNumber: string) => {
+    if (!cardNumber.trim()) {
+      return "Card number is required";
+    }
+    
+    const existingCard = existingMembers.find(member => member.cardNumber === cardNumber.trim());
+    if (existingCard) {
+      return "Card number already exists. Please use a unique card number.";
+    }
+    
+    return "";
+  };
+
   const handleAddMember = () => {
+    const newErrors: Record<string, string> = {};
+
     // Validation for required fields
     if (!newMember.name.trim()) {
-      alert("Name is required");
-      return;
+      newErrors.name = "Name is required";
     }
     
     if (!newMember.mobileNumber.trim()) {
-      alert("Mobile number is required");
+      newErrors.mobileNumber = "Mobile number is required";
+    }
+
+    const cardError = validateCardNumber(newMember.cardNumber);
+    if (cardError) {
+      newErrors.cardNumber = cardError;
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
     const member: Member = {
       id: Date.now().toString(),
       memberId: generateMemberId(newMember.category),
+      cardNumber: newMember.cardNumber.trim(),
       ...newMember,
       joinDate: new Date().toISOString().split('T')[0],
       booksIssued: 0,
@@ -79,6 +109,7 @@ export const AddMemberDialog = ({
     setIsOpen(false);
     setNewMember({
       name: "",
+      cardNumber: "",
       category: "Student",
       class: "",
       division: "",
@@ -94,6 +125,7 @@ export const AddMemberDialog = ({
       place: "",
       mobileNumber: "",
     });
+    setErrors({});
   };
 
   return (
@@ -115,24 +147,46 @@ export const AddMemberDialog = ({
               <Input
                 id="name"
                 value={newMember.name}
-                onChange={(e) => setNewMember({...newMember, name: e.target.value})}
+                onChange={(e) => {
+                  setNewMember({...newMember, name: e.target.value});
+                  setErrors({...errors, name: ""});
+                }}
                 placeholder="Enter full name"
                 required
               />
+              {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
             </div>
+            <div>
+              <Label htmlFor="cardNumber">Card Number *</Label>
+              <Input
+                id="cardNumber"
+                value={newMember.cardNumber}
+                onChange={(e) => {
+                  setNewMember({...newMember, cardNumber: e.target.value});
+                  setErrors({...errors, cardNumber: ""});
+                }}
+                placeholder="Enter unique card number"
+                required
+              />
+              {errors.cardNumber && <p className="text-sm text-red-500 mt-1">{errors.cardNumber}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="mobileNumber">Mobile Number *</Label>
               <Input
                 id="mobileNumber"
                 value={newMember.mobileNumber}
-                onChange={(e) => setNewMember({...newMember, mobileNumber: e.target.value})}
+                onChange={(e) => {
+                  setNewMember({...newMember, mobileNumber: e.target.value});
+                  setErrors({...errors, mobileNumber: ""});
+                }}
                 placeholder="Enter mobile number"
                 required
               />
+              {errors.mobileNumber && <p className="text-sm text-red-500 mt-1">{errors.mobileNumber}</p>}
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="gender">Gender</Label>
               <Select 
@@ -149,7 +203,10 @@ export const AddMemberDialog = ({
                 </SelectContent>
               </Select>
             </div>
-            {!isAcademicInstitution && (
+          </div>
+
+          {!isAcademicInstitution && (
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="place">Place</Label>
                 <Input
@@ -159,8 +216,24 @@ export const AddMemberDialog = ({
                   placeholder="Enter place/location"
                 />
               </div>
-            )}
-          </div>
+              <div>
+                <Label htmlFor="designation">Designation</Label>
+                <Select 
+                  value={newMember.designation} 
+                  onValueChange={(value) => setNewMember({...newMember, designation: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select designation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {designations.map((designation) => (
+                      <SelectItem key={designation.id} value={designation.name}>{designation.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
 
           {isAcademicInstitution && (
             <div>
@@ -319,12 +392,19 @@ export const AddMemberDialog = ({
           {isAcademicInstitution && newMember.category === "Non-Teaching Staff" && (
             <div>
               <Label htmlFor="designation">Designation</Label>
-              <Input
-                id="designation"
-                value={newMember.designation}
-                onChange={(e) => setNewMember({...newMember, designation: e.target.value})}
-                placeholder="e.g., Librarian"
-              />
+              <Select 
+                value={newMember.designation} 
+                onValueChange={(value) => setNewMember({...newMember, designation: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select designation" />
+                </SelectTrigger>
+                <SelectContent>
+                  {designations.map((designation) => (
+                    <SelectItem key={designation.id} value={designation.name}>{designation.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 

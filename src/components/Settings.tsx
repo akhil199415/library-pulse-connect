@@ -3,8 +3,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Upload } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSettings } from "@/contexts/SettingsContext";
 
@@ -28,7 +29,11 @@ export const Settings = () => {
     yearSemesters,
     setYearSemesters,
     subjects,
-    setSubjects
+    setSubjects,
+    designations,
+    setDesignations,
+    institutionLogo,
+    setInstitutionLogo
   } = useSettings();
 
   const [newItemName, setNewItemName] = useState("");
@@ -52,6 +57,17 @@ export const Settings = () => {
 
   const deleteItem = (items: ConfigItem[], setItems: (items: ConfigItem[]) => void, id: string) => {
     setItems(items.filter(item => item.id !== id));
+  };
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setInstitutionLogo(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const ConfigSection = ({ 
@@ -116,25 +132,44 @@ export const Settings = () => {
     </Card>
   );
 
-  if (!isSchool && !isCollege) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-muted-foreground">
-              No specific configuration options available for {user?.institutionType}.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-foreground">Settings</h1>
       <p className="text-muted-foreground">{user?.institutionName} - {user?.institutionType}</p>
+
+      {/* Institution Logo Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Institution Logo</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            {institutionLogo && (
+              <img src={institutionLogo} alt="Institution Logo" className="w-20 h-20 object-contain border rounded" />
+            )}
+            <div>
+              <Label htmlFor="logo-upload" className="cursor-pointer">
+                <Button variant="outline" className="gap-2" asChild>
+                  <span>
+                    <Upload className="w-4 h-4" />
+                    Upload Logo
+                  </span>
+                </Button>
+              </Label>
+              <Input
+                id="logo-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                Recommended size: 200x200 pixels, PNG or JPG format
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {isSchool && (
         <Tabs defaultValue="classes" className="space-y-4">
@@ -168,6 +203,10 @@ export const Settings = () => {
             <ConfigSection title="Subjects/Branches" items={subjects} setItems={setSubjects} />
           </TabsContent>
         </Tabs>
+      )}
+
+      {!isSchool && !isCollege && (
+        <ConfigSection title="Designations" items={designations} setItems={setDesignations} />
       )}
     </div>
   );
