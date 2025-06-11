@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Search, BookOpen, User, Calendar, ArrowRight, RotateCcw } from "lucide-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { WhatsAppMessaging } from "@/components/WhatsAppMessaging";
+import { OverdueFineReceipt } from "@/components/OverdueFineReceipt";
 
 interface Circulation {
   id: string;
@@ -72,6 +74,8 @@ export const CirculationSystem = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isIssueDialogOpen, setIsIssueDialogOpen] = useState(false);
   const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
+  const [isOverdueFineDialogOpen, setIsOverdueFineDialogOpen] = useState(false);
+  const [selectedOverdueCirculation, setSelectedOverdueCirculation] = useState<Circulation | null>(null);
 
   const [issueForm, setIssueForm] = useState({
     bookNumber: "",
@@ -153,6 +157,15 @@ export const CirculationSystem = () => {
       return;
     }
 
+    // Check if book is overdue
+    if (circulation.status === "overdue" && circulation.fine > 0) {
+      setSelectedOverdueCirculation(circulation);
+      setIsOverdueFineDialogOpen(true);
+      setIsReturnDialogOpen(false);
+      return;
+    }
+
+    // Normal return without fine
     const returnDate = new Date().toISOString().split('T')[0];
     const fine = calculateFine(circulation.dueDate, returnDate);
 
@@ -169,6 +182,69 @@ export const CirculationSystem = () => {
       title: "Success",
       description: fine > 0 ? `Book returned! Fine: ₹${fine}` : "Book returned successfully!",
     });
+  };
+
+  const handleOverdueReturn = (circulation: Circulation) => {
+    if (circulation.status === "overdue" && circulation.fine > 0) {
+      setSelectedOverdueCirculation(circulation);
+      setIsOverdueFineDialogOpen(true);
+    } else {
+      // Normal return
+      handleRegularReturn(circulation);
+    }
+  };
+
+  const handleRegularReturn = (circulation: Circulation) => {
+    const returnDate = new Date().toISOString().split('T')[0];
+    
+    setCirculations(circulations.map(c => 
+      c.id === circulation.id 
+        ? { ...c, status: "returned" as const, returnDate, fine: 0 }
+        : c
+    ));
+    
+    toast({
+      title: "Success",
+      description: "Book returned successfully!",
+    });
+  };
+
+  const handleReceiptGenerated = (receiptNo: string) => {
+    if (selectedOverdueCirculation) {
+      const returnDate = new Date().toISOString().split('T')[0];
+      
+      setCirculations(circulations.map(c => 
+        c.id === selectedOverdueCirculation.id 
+          ? { ...c, status: "returned" as const, returnDate }
+          : c
+      ));
+      
+      toast({
+        title: "Success",
+        description: `Book returned with receipt #${receiptNo}! Fine: ₹${selectedOverdueCirculation.fine}`,
+      });
+      
+      setSelectedOverdueCirculation(null);
+    }
+  };
+
+  const handleCancelOverdue = () => {
+    if (selectedOverdueCirculation) {
+      const returnDate = new Date().toISOString().split('T')[0];
+      
+      setCirculations(circulations.map(c => 
+        c.id === selectedOverdueCirculation.id 
+          ? { ...c, status: "returned" as const, returnDate, fine: 0 }
+          : c
+      ));
+      
+      toast({
+        title: "Success",
+        description: "Overdue fine cancelled and book returned successfully!",
+      });
+      
+      setSelectedOverdueCirculation(null);
+    }
   };
 
   const filteredCirculations = circulations.filter(circulation => {
@@ -344,10 +420,7 @@ export const CirculationSystem = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => {
-                          setReturnForm({ bookNumber: circulation.bookNumber });
-                          setIsReturnDialogOpen(true);
-                        }}
+                        onClick={() => handleOverdueReturn(circulation)}
                       >
                         Return
                       </Button>
@@ -413,6 +486,21 @@ export const CirculationSystem = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Overdue Fine Receipt Dialog */}
+      {selectedOverdueCirculation && (
+        <OverdueFineReceipt
+          isOpen={isOverdueFineDialogOpen}
+          setIsOpen={setIsOverdueFineDialogOpen}
+          bookTitle={selectedOverdueCirculation.bookTitle}
+          bookNumber={selectedOverdueCirculation.bookNumber}
+          memberName={selectedOverdueCirculation.memberName}
+          memberId={selectedOverdueCirculation.memberId}
+          fineAmount={selectedOverdueCirculation.fine}
+          onReceiptGenerated={handleReceiptGenerated}
+          onCancelOverdue={handleCancelOverdue}
+        />
+      )}
     </div>
   );
 };

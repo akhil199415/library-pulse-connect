@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Member } from "@/types/member";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface AddMemberDialogProps {
   isOpen: boolean;
@@ -27,6 +28,14 @@ export const AddMemberDialog = ({
   isSchool,
   isCollege
 }: AddMemberDialogProps) => {
+  const {
+    classes,
+    divisions,
+    courses,
+    yearSemesters,
+    subjects
+  } = useSettings();
+
   const [newMember, setNewMember] = useState({
     name: "",
     category: "Student" as Member["category"],
@@ -44,13 +53,6 @@ export const AddMemberDialog = ({
     place: "",
     mobileNumber: "",
   });
-
-  // Mock data - In a real app, this would come from settings/context
-  const schoolClasses = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
-  const schoolDivisions = ["A", "B", "C", "D"];
-  const collegeeCourses = ["B.Tech", "MBA", "BCA", "MCA", "B.Com", "M.Com"];
-  const collegeYearSemesters = ["1st Year", "2nd Year", "3rd Year", "4th Year", "1st Semester", "2nd Semester", "3rd Semester", "4th Semester"];
-  const collegeSubjects = ["Computer Science", "Information Technology", "Electronics", "Mechanical", "Civil", "Finance", "Marketing"];
 
   const handleAddMember = () => {
     // Validation for required fields
@@ -193,8 +195,8 @@ export const AddMemberDialog = ({
                         <SelectValue placeholder="Select class" />
                       </SelectTrigger>
                       <SelectContent>
-                        {schoolClasses.map((cls) => (
-                          <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                        {classes.map((cls) => (
+                          <SelectItem key={cls.id} value={cls.name}>{cls.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -209,8 +211,8 @@ export const AddMemberDialog = ({
                         <SelectValue placeholder="Select division" />
                       </SelectTrigger>
                       <SelectContent>
-                        {schoolDivisions.map((div) => (
-                          <SelectItem key={div} value={div}>{div}</SelectItem>
+                        {divisions.map((div) => (
+                          <SelectItem key={div.id} value={div.name}>{div.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -239,8 +241,8 @@ export const AddMemberDialog = ({
                         <SelectValue placeholder="Select course" />
                       </SelectTrigger>
                       <SelectContent>
-                        {collegeeCourses.map((course) => (
-                          <SelectItem key={course} value={course}>{course}</SelectItem>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.name}>{course.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -255,8 +257,8 @@ export const AddMemberDialog = ({
                         <SelectValue placeholder="Select year/semester" />
                       </SelectTrigger>
                       <SelectContent>
-                        {collegeYearSemesters.map((yearSem) => (
-                          <SelectItem key={yearSem} value={yearSem}>{yearSem}</SelectItem>
+                        {yearSemesters.map((yearSem) => (
+                          <SelectItem key={yearSem.id} value={yearSem.name}>{yearSem.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -271,8 +273,8 @@ export const AddMemberDialog = ({
                         <SelectValue placeholder="Select subject/branch" />
                       </SelectTrigger>
                       <SelectContent>
-                        {collegeSubjects.map((subject) => (
-                          <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                        {subjects.map((subject) => (
+                          <SelectItem key={subject.id} value={subject.name}>{subject.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

@@ -60,7 +60,7 @@ export const WhatsAppMessaging = ({
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="gap-2">
+        <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white">
           <MessageCircle className="w-4 h-4" />
           WhatsApp
         </Button>
@@ -98,7 +98,7 @@ export const WhatsAppMessaging = ({
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={sendWhatsAppMessage} className="gap-2">
+            <Button onClick={sendWhatsAppMessage} className="gap-2 bg-green-600 hover:bg-green-700">
               <Send className="w-4 h-4" />
               Send WhatsApp
             </Button>

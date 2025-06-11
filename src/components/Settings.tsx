@@ -3,10 +3,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface ConfigItem {
   id: string;
@@ -18,35 +18,18 @@ export const Settings = () => {
   const isSchool = user?.institutionType === "School";
   const isCollege = user?.institutionType === "College";
 
-  // School configuration states
-  const [classes, setClasses] = useState<ConfigItem[]>([
-    { id: "1", name: "I" },
-    { id: "2", name: "II" },
-    { id: "3", name: "XII" }
-  ]);
-  const [divisions, setDivisions] = useState<ConfigItem[]>([
-    { id: "1", name: "A" },
-    { id: "2", name: "B" },
-    { id: "3", name: "C" }
-  ]);
-
-  // College configuration states
-  const [courses, setCourses] = useState<ConfigItem[]>([
-    { id: "1", name: "B.Tech" },
-    { id: "2", name: "MBA" },
-    { id: "3", name: "BCA" }
-  ]);
-  const [yearSemesters, setYearSemesters] = useState<ConfigItem[]>([
-    { id: "1", name: "1st Year" },
-    { id: "2", name: "2nd Year" },
-    { id: "3", name: "1st Semester" },
-    { id: "4", name: "2nd Semester" }
-  ]);
-  const [subjects, setSubjects] = useState<ConfigItem[]>([
-    { id: "1", name: "Computer Science" },
-    { id: "2", name: "Information Technology" },
-    { id: "3", name: "Electronics" }
-  ]);
+  const {
+    classes,
+    setClasses,
+    divisions,
+    setDivisions,
+    courses,
+    setCourses,
+    yearSemesters,
+    setYearSemesters,
+    subjects,
+    setSubjects
+  } = useSettings();
 
   const [newItemName, setNewItemName] = useState("");
   const [editingItem, setEditingItem] = useState<ConfigItem | null>(null);
