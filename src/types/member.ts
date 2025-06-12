@@ -23,4 +23,5 @@ export interface Member {
   booksIssued: number;
   totalFines: number;
   issuedBooks: any[];
+  photo?: string;
 }

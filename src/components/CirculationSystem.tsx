@@ -73,6 +73,7 @@ export const CirculationSystem = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterGenre, setFilterGenre] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [isIssueDialogOpen, setIsIssueDialogOpen] = useState(false);
@@ -359,6 +360,8 @@ export const CirculationSystem = () => {
         setSearchTerm={setSearchTerm}
         filterStatus={filterStatus}
         setFilterStatus={setFilterStatus}
+        filterGenre={filterGenre}
+        setFilterGenre={setFilterGenre}
         dateFrom={dateFrom}
         setDateFrom={setDateFrom}
         dateTo={dateTo}
@@ -495,13 +498,9 @@ export const CirculationSystem = () => {
 
       {selectedOverdueCirculation && (
         <OverdueFineReceipt
+          circulation={selectedOverdueCirculation}
           isOpen={isOverdueFineDialogOpen}
-          setIsOpen={setIsOverdueFineDialogOpen}
-          bookTitle={selectedOverdueCirculation.bookTitle}
-          bookNumber={selectedOverdueCirculation.bookNumber}
-          memberName={selectedOverdueCirculation.memberName}
-          memberId={selectedOverdueCirculation.memberId}
-          fineAmount={selectedOverdueCirculation.fine}
+          onClose={() => setIsOverdueFineDialogOpen(false)}
           onReceiptGenerated={handleReceiptGenerated}
           onCancelOverdue={handleCancelOverdue}
         />
