@@ -9,6 +9,7 @@ import { AddMemberDialog } from "@/components/member/AddMemberDialog";
 import { EditMemberDialog } from "@/components/member/EditMemberDialog";
 import { DeleteMemberDialog } from "@/components/member/DeleteMemberDialog";
 import { MemberCard } from "@/components/member/MemberCard";
+import { MemberFilters } from "@/components/member/MemberFilters";
 
 export const MemberManagement = () => {
   const { user } = useAuth();
@@ -21,6 +22,21 @@ export const MemberManagement = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterClass, setFilterClass] = useState("all");
+  const [filterDivision, setFilterDivision] = useState("all");
+  const [filterCourse, setFilterCourse] = useState("all");
+  const [filterYearSemester, setFilterYearSemester] = useState("all");
+  const [filterSubject, setFilterSubject] = useState("all");
+  const [filterDesignation, setFilterDesignation] = useState("all");
+  const [cardNumber, setCardNumber] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const generateMemberId = (category?: Member["category"]) => {
     if (!isAcademicInstitution) {
@@ -41,10 +57,16 @@ export const MemberManagement = () => {
 
   const handleUpdateMember = (updatedMember: Member) => {
     setMembers(members.map(m => m.id === updatedMember.id ? updatedMember : m));
+    setSuccessMessage("Member updated successfully!");
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
   };
 
   const handleDeleteMember = (memberId: string) => {
     setMembers(members.filter(m => m.id !== memberId));
+    setSuccessMessage("Member deleted successfully!");
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
   };
 
   const handleEditClick = (member: Member) => {
@@ -57,8 +79,39 @@ export const MemberManagement = () => {
     setIsDeleteDialogOpen(true);
   };
 
+  // Filter members based on search criteria
+  const filteredMembers = members.filter(member => {
+    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCardNumber = cardNumber === "" || member.cardNumber.includes(cardNumber);
+    const matchesCategory = filterCategory === "all" || member.category === filterCategory;
+    const matchesClass = filterClass === "all" || member.class === filterClass;
+    const matchesDivision = filterDivision === "all" || member.division === filterDivision;
+    const matchesCourse = filterCourse === "all" || member.course === filterCourse;
+    const matchesYearSemester = filterYearSemester === "all" || member.year === filterYearSemester || member.semester === filterYearSemester;
+    const matchesSubject = filterSubject === "all" || member.subject === filterSubject;
+    const matchesDesignation = filterDesignation === "all" || member.designation === filterDesignation;
+    
+    let matchesDate = true;
+    if (dateFrom || dateTo) {
+      const joinDate = new Date(member.joinDate);
+      if (dateFrom) matchesDate = matchesDate && joinDate >= new Date(dateFrom);
+      if (dateTo) matchesDate = matchesDate && joinDate <= new Date(dateTo);
+    }
+
+    return matchesSearch && matchesCardNumber && matchesCategory && matchesClass && 
+           matchesDivision && matchesCourse && matchesYearSemester && matchesSubject && 
+           matchesDesignation && matchesDate;
+  });
+
   return (
     <div className="space-y-6">
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg">
+          <div className="text-green-800 font-medium">{successMessage}</div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Member Management</h1>
@@ -76,8 +129,33 @@ export const MemberManagement = () => {
         />
       </div>
 
+      <MemberFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filterCategory={filterCategory}
+        setFilterCategory={setFilterCategory}
+        filterClass={filterClass}
+        setFilterClass={setFilterClass}
+        filterDivision={filterDivision}
+        setFilterDivision={setFilterDivision}
+        filterCourse={filterCourse}
+        setFilterCourse={setFilterCourse}
+        filterYearSemester={filterYearSemester}
+        setFilterYearSemester={setFilterYearSemester}
+        filterSubject={filterSubject}
+        setFilterSubject={setFilterSubject}
+        filterDesignation={filterDesignation}
+        setFilterDesignation={setFilterDesignation}
+        cardNumber={cardNumber}
+        setCardNumber={setCardNumber}
+        dateFrom={dateFrom}
+        setDateFrom={setDateFrom}
+        dateTo={dateTo}
+        setDateTo={setDateTo}
+      />
+
       <div className="grid gap-4">
-        {members.map((member) => (
+        {filteredMembers.map((member) => (
           <Card key={member.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
@@ -94,6 +172,7 @@ export const MemberManagement = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => handleEditClick(member)}
+                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -101,6 +180,7 @@ export const MemberManagement = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => handleDeleteClick(member)}
+                    className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -110,6 +190,16 @@ export const MemberManagement = () => {
           </Card>
         ))}
       </div>
+
+      {filteredMembers.length === 0 && members.length > 0 && (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No members found</h3>
+            <p className="text-muted-foreground">Try adjusting your search criteria.</p>
+          </CardContent>
+        </Card>
+      )}
 
       {members.length === 0 && (
         <Card>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, User, Calendar, ArrowRight, RotateCcw } from "lucide-react";
+import { BookOpen, User, Calendar, ArrowRight, RotateCcw, Snowflake } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { WhatsAppMessaging } from "@/components/WhatsAppMessaging";
@@ -24,6 +24,8 @@ interface Circulation {
   returnDate?: string;
   status: "issued" | "returned" | "overdue";
   fine: number;
+  frozenDate?: string;
+  freezeReason?: string;
 }
 
 export const CirculationSystem = () => {
@@ -80,6 +82,9 @@ export const CirculationSystem = () => {
   const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
   const [isOverdueFineDialogOpen, setIsOverdueFineDialogOpen] = useState(false);
   const [selectedOverdueCirculation, setSelectedOverdueCirculation] = useState<Circulation | null>(null);
+  const [isFreezeDialogOpen, setIsFreezeDialogOpen] = useState(false);
+  const [freezeReason, setFreezeReason] = useState("");
+  const [selectedOverdueForFreeze, setSelectedOverdueForFreeze] = useState<Circulation | null>(null);
 
   const [issueForm, setIssueForm] = useState({
     bookNumber: "",
@@ -248,6 +253,31 @@ export const CirculationSystem = () => {
     }
   };
 
+  const handleFreezeOverdue = (circulation: Circulation) => {
+    setSelectedOverdueForFreeze(circulation);
+    setIsFreezeDialogOpen(true);
+  };
+
+  const confirmFreezeOverdue = () => {
+    if (!selectedOverdueForFreeze || !freezeReason.trim()) return;
+    
+    // Update the circulation to freeze the fine from current date
+    setCirculations(circulations.map(c => 
+      c.id === selectedOverdueForFreeze.id 
+        ? { ...c, frozenDate: new Date().toISOString().split('T')[0], freezeReason }
+        : c
+    ));
+    
+    setIsFreezeDialogOpen(false);
+    setFreezeReason("");
+    setSelectedOverdueForFreeze(null);
+    
+    toast({
+      title: "Success",
+      description: "Overdue fine has been frozen successfully from today's date.",
+    });
+  };
+
   const filteredCirculations = circulations.filter(circulation => {
     const matchesSearch = circulation.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          circulation.bookNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -368,7 +398,7 @@ export const CirculationSystem = () => {
         setDateTo={setDateTo}
       />
 
-      {/* Active Circulations with WhatsApp messaging */}
+      {/* Active Circulations with freeze overdue fine option */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -426,6 +456,17 @@ export const CirculationSystem = () => {
                         dueDate={circulation.dueDate}
                         isOverdue={circulation.status === "overdue"}
                       />
+                      {circulation.status === "overdue" && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="gap-1"
+                          onClick={() => handleFreezeOverdue(circulation)}
+                        >
+                          <Snowflake className="w-3 h-3" />
+                          Freeze Fine
+                        </Button>
+                      )}
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -495,6 +536,48 @@ export const CirculationSystem = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Freeze Overdue Dialog */}
+      <Dialog open={isFreezeDialogOpen} onOpenChange={setIsFreezeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Freeze Overdue Fine</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedOverdueForFreeze && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-blue-800 font-medium mb-2">
+                  Freeze overdue fine for: {selectedOverdueForFreeze.bookTitle}
+                </p>
+                <p className="text-sm text-blue-700">
+                  Current fine: ₹{selectedOverdueForFreeze.fine}
+                </p>
+              </div>
+            )}
+            <div>
+              <Label htmlFor="freezeReason">Reason for Freezing Overdue Fine *</Label>
+              <Textarea
+                id="freezeReason"
+                value={freezeReason}
+                onChange={(e) => setFreezeReason(e.target.value)}
+                placeholder="Enter reason for freezing overdue fine..."
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsFreezeDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmFreezeOverdue}
+                disabled={!freezeReason.trim()}
+              >
+                Freeze Fine
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {selectedOverdueCirculation && (
         <OverdueFineReceipt

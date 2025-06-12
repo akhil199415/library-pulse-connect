@@ -138,20 +138,24 @@ export const Settings = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-      <p className="text-muted-foreground">{user?.institutionName} - {user?.institutionType}</p>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border">
+        <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
+        <p className="text-muted-foreground">{user?.institutionName} - {user?.institutionType}</p>
+      </div>
 
       {/* Institution Logo Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Institution Logo</CardTitle>
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Institution Logo</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {institutionLogo && (
-              <img src={institutionLogo} alt="Institution Logo" className="w-20 h-20 object-contain border rounded" />
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <img src={institutionLogo} alt="Institution Logo" className="w-24 h-24 object-contain" />
+              </div>
             )}
-            <div>
+            <div className="flex-1">
               <Label htmlFor="logo-upload" className="cursor-pointer">
                 <Button variant="outline" className="gap-2" asChild>
                   <span>
@@ -168,7 +172,7 @@ export const Settings = () => {
                 className="hidden"
               />
               <p className="text-sm text-muted-foreground mt-2">
-                Recommended size: 200x200 pixels, PNG or JPG format
+                Recommended: 200x200 pixels, PNG or JPG format
               </p>
             </div>
           </div>
@@ -176,48 +180,76 @@ export const Settings = () => {
       </Card>
 
       {/* Genres Configuration */}
-      <ConfigSection title="Genres" items={genres} setItems={setGenres} />
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Book Genres</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ConfigSection title="Genres" items={genres} setItems={setGenres} />
+        </CardContent>
+      </Card>
 
       {isSchool && (
-        <Tabs defaultValue="classes" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="classes">Classes</TabsTrigger>
-            <TabsTrigger value="divisions">Divisions</TabsTrigger>
-            <TabsTrigger value="streams">Streams</TabsTrigger>
-          </TabsList>
-          <TabsContent value="classes">
-            <ConfigSection title="Classes" items={classes} setItems={setClasses} />
-          </TabsContent>
-          <TabsContent value="divisions">
-            <ConfigSection title="Divisions" items={divisions} setItems={setDivisions} />
-          </TabsContent>
-          <TabsContent value="streams">
-            <ConfigSection title="Streams" items={streams} setItems={setStreams} />
-          </TabsContent>
-        </Tabs>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">School Configuration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="classes" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="classes">Classes</TabsTrigger>
+                <TabsTrigger value="divisions">Divisions</TabsTrigger>
+                <TabsTrigger value="streams">Streams</TabsTrigger>
+              </TabsList>
+              <TabsContent value="classes" className="mt-4">
+                <ConfigSection title="Classes" items={classes} setItems={setClasses} />
+              </TabsContent>
+              <TabsContent value="divisions" className="mt-4">
+                <ConfigSection title="Divisions" items={divisions} setItems={setDivisions} />
+              </TabsContent>
+              <TabsContent value="streams" className="mt-4">
+                <ConfigSection title="Streams" items={streams} setItems={setStreams} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       )}
 
       {isCollege && (
-        <Tabs defaultValue="courses" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="years">Year/Semester</TabsTrigger>
-            <TabsTrigger value="subjects">Subjects/Branches</TabsTrigger>
-          </TabsList>
-          <TabsContent value="courses">
-            <ConfigSection title="Courses" items={courses} setItems={setCourses} />
-          </TabsContent>
-          <TabsContent value="years">
-            <ConfigSection title="Year/Semester" items={yearSemesters} setItems={setYearSemesters} />
-          </TabsContent>
-          <TabsContent value="subjects">
-            <ConfigSection title="Subjects/Branches" items={subjects} setItems={setSubjects} />
-          </TabsContent>
-        </Tabs>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">College Configuration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="courses" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="courses">Courses</TabsTrigger>
+                <TabsTrigger value="years">Year/Semester</TabsTrigger>
+                <TabsTrigger value="subjects">Subjects/Branches</TabsTrigger>
+              </TabsList>
+              <TabsContent value="courses" className="mt-4">
+                <ConfigSection title="Courses" items={courses} setItems={setCourses} />
+              </TabsContent>
+              <TabsContent value="years" className="mt-4">
+                <ConfigSection title="Year/Semester" items={yearSemesters} setItems={setYearSemesters} />
+              </TabsContent>
+              <TabsContent value="subjects" className="mt-4">
+                <ConfigSection title="Subjects/Branches" items={subjects} setItems={setSubjects} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       )}
 
       {!isSchool && !isCollege && (
-        <ConfigSection title="Designations" items={designations} setItems={setDesignations} />
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Staff Configuration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConfigSection title="Designations" items={designations} setItems={setDesignations} />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
