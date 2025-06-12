@@ -24,6 +24,8 @@ export const Settings = () => {
     setClasses,
     divisions,
     setDivisions,
+    streams,
+    setStreams,
     courses,
     setCourses,
     yearSemesters,
@@ -32,6 +34,8 @@ export const Settings = () => {
     setSubjects,
     designations,
     setDesignations,
+    genres,
+    setGenres,
     institutionLogo,
     setInstitutionLogo
   } = useSettings();
@@ -171,17 +175,24 @@ export const Settings = () => {
         </CardContent>
       </Card>
 
+      {/* Genres Configuration */}
+      <ConfigSection title="Genres" items={genres} setItems={setGenres} />
+
       {isSchool && (
         <Tabs defaultValue="classes" className="space-y-4">
           <TabsList>
             <TabsTrigger value="classes">Classes</TabsTrigger>
             <TabsTrigger value="divisions">Divisions</TabsTrigger>
+            <TabsTrigger value="streams">Streams</TabsTrigger>
           </TabsList>
           <TabsContent value="classes">
             <ConfigSection title="Classes" items={classes} setItems={setClasses} />
           </TabsContent>
           <TabsContent value="divisions">
             <ConfigSection title="Divisions" items={divisions} setItems={setDivisions} />
+          </TabsContent>
+          <TabsContent value="streams">
+            <ConfigSection title="Streams" items={streams} setItems={setStreams} />
           </TabsContent>
         </Tabs>
       )}

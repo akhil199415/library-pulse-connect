@@ -12,6 +12,8 @@ interface SettingsContextType {
   setClasses: (classes: ConfigItem[]) => void;
   divisions: ConfigItem[];
   setDivisions: (divisions: ConfigItem[]) => void;
+  streams: ConfigItem[];
+  setStreams: (streams: ConfigItem[]) => void;
   
   // College settings
   courses: ConfigItem[];
@@ -24,6 +26,8 @@ interface SettingsContextType {
   // General settings
   designations: ConfigItem[];
   setDesignations: (designations: ConfigItem[]) => void;
+  genres: ConfigItem[];
+  setGenres: (genres: ConfigItem[]) => void;
   institutionLogo: string;
   setInstitutionLogo: (logo: string) => void;
 }
@@ -64,6 +68,13 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     { id: "2", name: "B" },
     { id: "3", name: "C" },
     { id: "4", name: "D" }
+  ]);
+
+  const [streams, setStreams] = useState<ConfigItem[]>([
+    { id: "1", name: "Science" },
+    { id: "2", name: "Commerce" },
+    { id: "3", name: "Arts" },
+    { id: "4", name: "Humanities" }
   ]);
 
   // College settings with default values
@@ -108,6 +119,17 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     { id: "7", name: "Security" }
   ]);
 
+  const [genres, setGenres] = useState<ConfigItem[]>([
+    { id: "1", name: "Fiction" },
+    { id: "2", name: "Non-Fiction" },
+    { id: "3", name: "Science" },
+    { id: "4", name: "History" },
+    { id: "5", name: "Biography" },
+    { id: "6", name: "Technology" },
+    { id: "7", name: "Mathematics" },
+    { id: "8", name: "Literature" }
+  ]);
+
   const [institutionLogo, setInstitutionLogo] = useState<string>("");
 
   return (
@@ -116,6 +138,8 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       setClasses,
       divisions,
       setDivisions,
+      streams,
+      setStreams,
       courses,
       setCourses,
       yearSemesters,
@@ -124,6 +148,8 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       setSubjects,
       designations,
       setDesignations,
+      genres,
+      setGenres,
       institutionLogo,
       setInstitutionLogo
     }}>

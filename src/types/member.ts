@@ -4,33 +4,23 @@ export interface Member {
   memberId: string;
   cardNumber: string;
   name: string;
-  category?: "Student" | "Teaching Staff" | "Non-Teaching Staff";
-  photo?: string;
-  // Student specific (School/College)
+  category: "Student" | "Teaching Staff" | "Non-Teaching Staff";
   class?: string;
   division?: string;
+  stream?: string;
   rollNo?: string;
-  course?: string; // For college
-  year?: string; // For college
-  semester?: string; // For college
-  subject?: string; // For college student's subject
-  // Teaching staff specific
+  course?: string;
+  year?: string;
+  semester?: string;
+  subject?: string;
   teachingSubject?: string;
-  gender?: string;
+  gender: string;
   staffRoomNo?: string;
-  // Non-teaching staff specific
   designation?: string;
-  // General member fields (for non-academic institutions)
   place?: string;
-  mobileNumber?: string;
-  // Common
+  mobileNumber: string;
   joinDate: string;
   booksIssued: number;
   totalFines: number;
-  issuedBooks: {
-    title: string;
-    issueDate: string;
-    dueDate: string;
-    isOverdue: boolean;
-  }[];
+  issuedBooks: any[];
 }

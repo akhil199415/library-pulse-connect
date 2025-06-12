@@ -1,10 +1,13 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Edit, Trash2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Member } from "@/types/member";
 import { AddMemberDialog } from "@/components/member/AddMemberDialog";
+import { EditMemberDialog } from "@/components/member/EditMemberDialog";
+import { DeleteMemberDialog } from "@/components/member/DeleteMemberDialog";
 import { MemberCard } from "@/components/member/MemberCard";
 
 export const MemberManagement = () => {
@@ -15,6 +18,9 @@ export const MemberManagement = () => {
 
   const [members, setMembers] = useState<Member[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   const generateMemberId = (category?: Member["category"]) => {
     if (!isAcademicInstitution) {
@@ -31,6 +37,24 @@ export const MemberManagement = () => {
 
   const handleAddMember = (member: Member) => {
     setMembers([...members, member]);
+  };
+
+  const handleUpdateMember = (updatedMember: Member) => {
+    setMembers(members.map(m => m.id === updatedMember.id ? updatedMember : m));
+  };
+
+  const handleDeleteMember = (memberId: string) => {
+    setMembers(members.filter(m => m.id !== memberId));
+  };
+
+  const handleEditClick = (member: Member) => {
+    setSelectedMember(member);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (member: Member) => {
+    setSelectedMember(member);
+    setIsDeleteDialogOpen(true);
   };
 
   return (
@@ -54,13 +78,36 @@ export const MemberManagement = () => {
 
       <div className="grid gap-4">
         {members.map((member) => (
-          <MemberCard
-            key={member.id}
-            member={member}
-            isSchool={isSchool}
-            isCollege={isCollege}
-            isAcademicInstitution={isAcademicInstitution}
-          />
+          <Card key={member.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <MemberCard
+                    member={member}
+                    isSchool={isSchool}
+                    isCollege={isCollege}
+                    isAcademicInstitution={isAcademicInstitution}
+                  />
+                </div>
+                <div className="flex items-center gap-2 ml-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditClick(member)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDeleteClick(member)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
@@ -73,6 +120,24 @@ export const MemberManagement = () => {
           </CardContent>
         </Card>
       )}
+
+      <EditMemberDialog
+        isOpen={isEditDialogOpen}
+        setIsOpen={setIsEditDialogOpen}
+        member={selectedMember}
+        onUpdateMember={handleUpdateMember}
+        isAcademicInstitution={isAcademicInstitution}
+        isSchool={isSchool}
+        isCollege={isCollege}
+        existingMembers={members}
+      />
+
+      <DeleteMemberDialog
+        isOpen={isDeleteDialogOpen}
+        setIsOpen={setIsDeleteDialogOpen}
+        member={selectedMember}
+        onDeleteMember={handleDeleteMember}
+      />
     </div>
   );
 };

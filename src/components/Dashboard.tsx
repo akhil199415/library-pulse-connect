@@ -1,30 +1,43 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Users, Clock, AlertTriangle } from "lucide-react";
+import { BookOpen, Users, Clock, AlertTriangle, Archive, Wrench } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 export const Dashboard = () => {
+  const totalBooks = 2847;
+  const booksInCirculation = 423;
+  const currentBooksInRacks = totalBooks - booksInCirculation;
+  const obsoleteBooks = 45;
+  const booksForBinding = 12;
+
   const stats = [
     {
       title: "Total Books",
-      value: "2,847",
+      value: totalBooks.toLocaleString(),
       icon: BookOpen,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
       title: "Books in Circulation",
-      value: "423",
+      value: booksInCirculation.toString(),
       icon: Clock,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
+      title: "Current Books in Racks",
+      value: currentBooksInRacks.toLocaleString(),
+      icon: Archive,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+    },
+    {
       title: "Total Members",
       value: "1,256",
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50",
     },
     {
       title: "Overdue Books",
@@ -32,6 +45,20 @@ export const Dashboard = () => {
       icon: AlertTriangle,
       color: "text-red-600",
       bgColor: "bg-red-50",
+    },
+    {
+      title: "Obsolete Books",
+      value: obsoleteBooks.toString(),
+      icon: Archive,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+    },
+    {
+      title: "Books for Binding",
+      value: booksForBinding.toString(),
+      icon: Wrench,
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50",
     },
   ];
 

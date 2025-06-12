@@ -33,6 +33,7 @@ export const AddMemberDialog = ({
   const {
     classes,
     divisions,
+    streams,
     courses,
     yearSemesters,
     subjects,
@@ -45,6 +46,7 @@ export const AddMemberDialog = ({
     category: "Student" as Member["category"],
     class: "",
     division: "",
+    stream: "",
     rollNo: "",
     course: "",
     year: "",
@@ -73,6 +75,18 @@ export const AddMemberDialog = ({
     return "";
   };
 
+  const validateMobileNumber = (mobile: string) => {
+    if (!mobile.trim()) {
+      return "Mobile number is required";
+    }
+    
+    if (mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
+      return "Mobile number must be exactly 10 digits";
+    }
+    
+    return "";
+  };
+
   const handleAddMember = () => {
     const newErrors: Record<string, string> = {};
 
@@ -81,8 +95,9 @@ export const AddMemberDialog = ({
       newErrors.name = "Name is required";
     }
     
-    if (!newMember.mobileNumber.trim()) {
-      newErrors.mobileNumber = "Mobile number is required";
+    const mobileError = validateMobileNumber(newMember.mobileNumber);
+    if (mobileError) {
+      newErrors.mobileNumber = mobileError;
     }
 
     const cardError = validateCardNumber(newMember.cardNumber);
@@ -113,6 +128,7 @@ export const AddMemberDialog = ({
       category: "Student",
       class: "",
       division: "",
+      stream: "",
       rollNo: "",
       course: "",
       year: "",
@@ -127,6 +143,8 @@ export const AddMemberDialog = ({
     });
     setErrors({});
   };
+
+  const isHigherClass = newMember.class === "XI" || newMember.class === "XII";
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -179,11 +197,13 @@ export const AddMemberDialog = ({
                 id="mobileNumber"
                 value={newMember.mobileNumber}
                 onChange={(e) => {
-                  setNewMember({...newMember, mobileNumber: e.target.value});
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setNewMember({...newMember, mobileNumber: value});
                   setErrors({...errors, mobileNumber: ""});
                 }}
-                placeholder="Enter mobile number"
+                placeholder="Enter 10-digit mobile number"
                 required
+                maxLength={10}
               />
               {errors.mobileNumber && <p className="text-sm text-red-500 mt-1">{errors.mobileNumber}</p>}
             </div>
@@ -262,7 +282,7 @@ export const AddMemberDialog = ({
                     <Label htmlFor="class">Class</Label>
                     <Select 
                       value={newMember.class} 
-                      onValueChange={(value) => setNewMember({...newMember, class: value})}
+                      onValueChange={(value) => setNewMember({...newMember, class: value, stream: ""})}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select class" />
@@ -299,6 +319,25 @@ export const AddMemberDialog = ({
                       placeholder="e.g., 25"
                     />
                   </div>
+                </div>
+              )}
+
+              {isSchool && isHigherClass && (
+                <div>
+                  <Label htmlFor="stream">Stream</Label>
+                  <Select 
+                    value={newMember.stream} 
+                    onValueChange={(value) => setNewMember({...newMember, stream: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select stream" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {streams.map((stream) => (
+                        <SelectItem key={stream.id} value={stream.name}>{stream.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
 
