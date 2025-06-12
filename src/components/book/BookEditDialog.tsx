@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSettings } from "@/contexts/SettingsContext";
-import { useToast } from "@/hooks/use-toast";
+import { CheckCircle } from "lucide-react";
 
 interface Book {
   id: string;
@@ -41,13 +42,14 @@ interface BookEditDialogProps {
 
 export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEditDialogProps) => {
   const { genres, languages } = useSettings();
-  const { toast } = useToast();
   const [formData, setFormData] = useState<Book | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     if (book) {
       setFormData({ ...book });
+      setShowSuccess(false);
     }
   }, [book]);
 
@@ -73,12 +75,13 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
     if (!formData || !validateForm()) return;
 
     onUpdateBook(formData);
-    onClose();
-
-    toast({
-      title: "Success",
-      description: "Changes saved successfully!",
-    });
+    setShowSuccess(true);
+    
+    // Auto-hide success message after 3 seconds
+    setTimeout(() => {
+      setShowSuccess(false);
+      onClose();
+    }, 3000);
   };
 
   if (!formData) return null;
@@ -89,6 +92,15 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
         <DialogHeader>
           <DialogTitle>Edit Book</DialogTitle>
         </DialogHeader>
+
+        {showSuccess && (
+          <Alert className="bg-green-50 border-green-200 mb-4">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-700">
+              Changes saved successfully!
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

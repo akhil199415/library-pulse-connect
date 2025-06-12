@@ -137,17 +137,6 @@ export const AddBookDialog = ({ isOpen, onClose, onAddBook }: AddBookDialogProps
           </div>
 
           <div>
-            <Label htmlFor="author">Author *</Label>
-            <Input
-              id="author"
-              value={formData.author}
-              onChange={(e) => setFormData({...formData, author: e.target.value})}
-              className={validationErrors.author ? "border-red-500" : ""}
-            />
-            {validationErrors.author && <p className="text-red-500 text-sm mt-1">{validationErrors.author}</p>}
-          </div>
-
-          <div>
             <Label htmlFor="language">Language</Label>
             <Select value={formData.language} onValueChange={(value) => setFormData({...formData, language: value})}>
               <SelectTrigger>
@@ -161,6 +150,17 @@ export const AddBookDialog = ({ isOpen, onClose, onAddBook }: AddBookDialogProps
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="author">Author *</Label>
+            <Input
+              id="author"
+              value={formData.author}
+              onChange={(e) => setFormData({...formData, author: e.target.value})}
+              className={validationErrors.author ? "border-red-500" : ""}
+            />
+            {validationErrors.author && <p className="text-red-500 text-sm mt-1">{validationErrors.author}</p>}
           </div>
 
           <div>
