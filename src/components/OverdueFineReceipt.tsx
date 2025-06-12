@@ -143,7 +143,7 @@ export const OverdueFineReceipt = ({
           </div>
         ) : showReceipt ? (
           <div className="space-y-4">
-            <div className="bg-white border-2 border-gray-300 rounded-lg p-8 print:shadow-none print:border-black">
+            <div className="bg-white border-2 border-gray-300 rounded-lg p-8 print:shadow-none print:border-black print:p-6">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">OVERDUE FINE RECEIPT</h2>
                 <p className="text-sm text-gray-600 mt-2">Receipt No: {receiptNo}</p>
@@ -166,6 +166,10 @@ export const OverdueFineReceipt = ({
                     <strong className="text-gray-700">Issued Date:</strong>
                     <p className="text-gray-900">{circulation.issueDate}</p>
                   </div>
+                  <div>
+                    <strong className="text-gray-700">Due Date:</strong>
+                    <p className="text-gray-900">{circulation.dueDate}</p>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <div>
@@ -177,8 +181,8 @@ export const OverdueFineReceipt = ({
                     <p className="text-gray-900">{circulation.memberId}</p>
                   </div>
                   <div>
-                    <strong className="text-gray-700">Due Date:</strong>
-                    <p className="text-gray-900">{circulation.dueDate}</p>
+                    <strong className="text-gray-700">Cash Receipt No:</strong>
+                    <p className="text-gray-900">{cashReceiptNo || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -202,11 +206,11 @@ export const OverdueFineReceipt = ({
               </div>
             </div>
             
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 print:hidden">
               <Button variant="outline" onClick={() => setShowReceipt(false)}>
                 Back
               </Button>
-              <Button onClick={handlePrintReceipt}>
+              <Button onClick={handlePrintReceipt} className="bg-blue-600 hover:bg-blue-700">
                 Print & Download Receipt
               </Button>
             </div>
@@ -236,7 +240,7 @@ export const OverdueFineReceipt = ({
                 id="cashReceiptNo"
                 value={cashReceiptNo}
                 onChange={(e) => setCashReceiptNo(e.target.value)}
-                placeholder="Enter cash receipt number"
+                placeholder="Enter cash receipt number (optional)"
               />
             </div>
 
@@ -244,7 +248,7 @@ export const OverdueFineReceipt = ({
               <Button variant="outline" onClick={() => setShowCancelConfirm(true)}>
                 Cancel Overdue Fine
               </Button>
-              <Button onClick={handleGenerateReceipt}>
+              <Button onClick={handleGenerateReceipt} className="bg-green-600 hover:bg-green-700">
                 Generate Receipt
               </Button>
             </div>

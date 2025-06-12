@@ -15,12 +15,13 @@ export const Reports = () => {
     { month: "Jun", circulations: 167, returns: 189 },
   ];
 
-  const popularBooks = [
-    { title: "Introduction to Computer Science", circulations: 45 },
-    { title: "Modern Physics", circulations: 38 },
-    { title: "Advanced Mathematics", circulations: 32 },
-    { title: "Data Structures", circulations: 28 },
-    { title: "Chemistry Fundamentals", circulations: 25 },
+  const fineCollectionData = [
+    { month: "Jan", fineAmount: 1250 },
+    { month: "Feb", fineAmount: 1890 },
+    { month: "Mar", fineAmount: 2340 },
+    { month: "Apr", fineAmount: 1675 },
+    { month: "May", fineAmount: 2120 },
+    { month: "Jun", fineAmount: 1980 },
   ];
 
   const memberActivityData = [
@@ -191,19 +192,19 @@ export const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Most Popular Books */}
+        {/* Fine Collection (Monthly) */}
         <Card>
           <CardHeader>
-            <CardTitle>Most Circulated Books</CardTitle>
+            <CardTitle>Monthly Fine Collection</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={popularBooks} layout="horizontal">
+              <BarChart data={fineCollectionData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis type="category" dataKey="title" width={120} fontSize={12} />
-                <Tooltip />
-                <Bar dataKey="circulations" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                <XAxis dataKey="month" fontSize={12} />
+                <YAxis />
+                <Tooltip formatter={(value) => [`₹${value}`, "Fine Amount"]} />
+                <Bar dataKey="fineAmount" fill="#ef4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -221,7 +222,7 @@ export const Reports = () => {
                 <XAxis dataKey="department" fontSize={12} />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="books" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="books" fill="#f59e0b" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

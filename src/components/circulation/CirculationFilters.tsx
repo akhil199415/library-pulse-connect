@@ -1,104 +1,105 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface CirculationFiltersProps {
   searchTerm: string;
-  setSearchTerm: (term: string) => void;
+  setSearchTerm: (value: string) => void;
   filterStatus: string;
-  setFilterStatus: (status: string) => void;
+  setFilterStatus: (value: string) => void;
   filterGenre: string;
-  setFilterGenre: (genre: string) => void;
+  setFilterGenre: (value: string) => void;
   dateFrom: string;
-  setDateFrom: (date: string) => void;
+  setDateFrom: (value: string) => void;
   dateTo: string;
-  setDateTo: (date: string) => void;
+  setDateTo: (value: string) => void;
 }
 
-export const CirculationFilters = ({ 
-  searchTerm, 
-  setSearchTerm, 
-  filterStatus, 
+export const CirculationFilters = ({
+  searchTerm,
+  setSearchTerm,
+  filterStatus,
   setFilterStatus,
   filterGenre,
   setFilterGenre,
   dateFrom,
   setDateFrom,
   dateTo,
-  setDateTo
+  setDateTo,
 }: CirculationFiltersProps) => {
-  const clearFilters = () => {
-    setSearchTerm("");
-    setFilterStatus("all");
-    setFilterGenre("all");
-    setDateFrom("");
-    setDateTo("");
-  };
-
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Search & Filter</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, book title..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          {/* First row - Search and Status */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="searchTerm">Search</Label>
+              <Input
+                id="searchTerm"
+                placeholder="Search by book title, book number, member name, or member ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="filterStatus">Status</Label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="issued">Issued</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="returned">Returned</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="issued">Issued</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-              <SelectItem value="returned">Returned</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterGenre} onValueChange={setFilterGenre}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by genre" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Genres</SelectItem>
-              <SelectItem value="fiction">Fiction</SelectItem>
-              <SelectItem value="science">Science</SelectItem>
-              <SelectItem value="history">History</SelectItem>
-              <SelectItem value="technology">Technology</SelectItem>
-            </SelectContent>
-          </Select>
-          <div>
-            <Input
-              id="dateFrom"
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              placeholder="From date"
-            />
-            <Label htmlFor="dateFrom" className="text-xs mt-1 block">From Date</Label>
+
+          {/* Second row - Genre and Date filters */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="filterGenre">Genre</Label>
+              <Select value={filterGenre} onValueChange={setFilterGenre}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All genres" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genres</SelectItem>
+                  <SelectItem value="Fiction">Fiction</SelectItem>
+                  <SelectItem value="Non-Fiction">Non-Fiction</SelectItem>
+                  <SelectItem value="Science">Science</SelectItem>
+                  <SelectItem value="Technology">Technology</SelectItem>
+                  <SelectItem value="Mathematics">Mathematics</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-1">
+              {/* Empty space for alignment */}
+            </div>
+            <div>
+              <Label htmlFor="dateFrom">From Date</Label>
+              <Input
+                id="dateFrom"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="dateTo">To Date</Label>
+              <Input
+                id="dateTo"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
           </div>
-          <div>
-            <Input
-              id="dateTo"
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              placeholder="To date"
-            />
-            <Label htmlFor="dateTo" className="text-xs mt-1 block">To Date</Label>
-          </div>
-          <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
         </div>
       </CardContent>
     </Card>

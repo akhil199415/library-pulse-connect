@@ -152,6 +152,9 @@ export const MemberManagement = () => {
         setDateFrom={setDateFrom}
         dateTo={dateTo}
         setDateTo={setDateTo}
+        isSchool={isSchool}
+        isCollege={isCollege}
+        isAcademicInstitution={isAcademicInstitution}
       />
 
       <div className="grid gap-4">

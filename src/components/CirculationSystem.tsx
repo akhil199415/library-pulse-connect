@@ -28,6 +28,8 @@ interface Circulation {
   fine: number;
   frozenDate?: string;
   freezeReason?: string;
+  receiptGenerated?: boolean;
+  receiptNumber?: string;
 }
 
 export const CirculationSystem = () => {
@@ -57,7 +59,7 @@ export const CirculationSystem = () => {
       issueDate: "2024-05-18",
       dueDate: "2024-06-01",
       status: "overdue",
-      fine: 5,
+      fine: 15,
     },
     {
       id: "3",
@@ -87,6 +89,9 @@ export const CirculationSystem = () => {
   const [isFreezeDialogOpen, setIsFreezeDialogOpen] = useState(false);
   const [freezeReason, setFreezeReason] = useState("");
   const [selectedOverdueForFreeze, setSelectedOverdueForFreeze] = useState<Circulation | null>(null);
+  const [isReceiptNumberDialogOpen, setIsReceiptNumberDialogOpen] = useState(false);
+  const [receiptNumberInput, setReceiptNumberInput] = useState("");
+  const [selectedReceiptCirculation, setSelectedReceiptCirculation] = useState<Circulation | null>(null);
 
   const [issueForm, setIssueForm] = useState({
     bookNumber: "",
@@ -194,6 +199,12 @@ export const CirculationSystem = () => {
   };
 
   const handleOverdueReturn = (circulation: Circulation) => {
+    if (circulation.receiptGenerated && !circulation.receiptNumber) {
+      setSelectedReceiptCirculation(circulation);
+      setIsReceiptNumberDialogOpen(true);
+      return;
+    }
+
     if (circulation.status === "overdue" && circulation.fine > 0) {
       setSelectedOverdueCirculation(circulation);
       setIsOverdueFineDialogOpen(true);
@@ -219,17 +230,15 @@ export const CirculationSystem = () => {
 
   const handleReceiptGenerated = (receiptNo: string) => {
     if (selectedOverdueCirculation) {
-      const returnDate = new Date().toISOString().split('T')[0];
-      
       setCirculations(circulations.map(c => 
         c.id === selectedOverdueCirculation.id 
-          ? { ...c, status: "returned" as const, returnDate }
+          ? { ...c, receiptGenerated: true, receiptNumber: receiptNo }
           : c
       ));
       
       toast({
         title: "Success",
-        description: `Book returned with receipt #${receiptNo}! Fine: ₹${selectedOverdueCirculation.fine}`,
+        description: `Receipt #${receiptNo} generated! Please enter receipt number to complete return.`,
       });
       
       setSelectedOverdueCirculation(null);
@@ -263,7 +272,6 @@ export const CirculationSystem = () => {
   const confirmFreezeOverdue = () => {
     if (!selectedOverdueForFreeze || !freezeReason.trim()) return;
     
-    // Update the circulation to freeze the fine from current date
     setCirculations(circulations.map(c => 
       c.id === selectedOverdueForFreeze.id 
         ? { ...c, frozenDate: new Date().toISOString().split('T')[0], freezeReason }
@@ -277,6 +285,27 @@ export const CirculationSystem = () => {
     toast({
       title: "Success",
       description: "Overdue fine has been frozen successfully from today's date.",
+    });
+  };
+
+  const handleReceiptNumberSubmit = () => {
+    if (!receiptNumberInput.trim() || !selectedReceiptCirculation) return;
+
+    const returnDate = new Date().toISOString().split('T')[0];
+    
+    setCirculations(circulations.map(c => 
+      c.id === selectedReceiptCirculation.id 
+        ? { ...c, status: "returned" as const, returnDate, receiptNumber: receiptNumberInput }
+        : c
+    ));
+    
+    setIsReceiptNumberDialogOpen(false);
+    setReceiptNumberInput("");
+    setSelectedReceiptCirculation(null);
+    
+    toast({
+      title: "Success",
+      description: "Book returned successfully with receipt number!",
     });
   };
 
@@ -400,7 +429,7 @@ export const CirculationSystem = () => {
         setDateTo={setDateTo}
       />
 
-      {/* Active Circulations with freeze overdue fine option */}
+      {/* Active Circulations */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -452,13 +481,18 @@ export const CirculationSystem = () => {
                           Fine: ₹{circulation.fine}
                         </Badge>
                       )}
+                      {circulation.frozenDate && (
+                        <Badge variant="secondary">
+                          Frozen
+                        </Badge>
+                      )}
                       <WhatsAppMessaging
                         memberName={circulation.memberName}
                         bookTitle={circulation.bookTitle}
                         dueDate={circulation.dueDate}
                         isOverdue={circulation.status === "overdue"}
                       />
-                      {circulation.status === "overdue" && (
+                      {circulation.status === "overdue" && !circulation.frozenDate && (
                         <Button 
                           size="sm" 
                           variant="outline"
@@ -469,12 +503,23 @@ export const CirculationSystem = () => {
                           Freeze Fine
                         </Button>
                       )}
+                      {circulation.status === "overdue" && circulation.frozenDate && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          disabled
+                          className="gap-1"
+                        >
+                          <Snowflake className="w-3 h-3" />
+                          Frozen
+                        </Button>
+                      )}
                       <Button 
                         size="sm" 
                         variant="outline"
                         onClick={() => handleOverdueReturn(circulation)}
                       >
-                        Return
+                        {circulation.receiptGenerated && !circulation.receiptNumber ? "Enter Receipt No" : "Return"}
                       </Button>
                     </div>
                   </div>
@@ -575,6 +620,47 @@ export const CirculationSystem = () => {
                 disabled={!freezeReason.trim()}
               >
                 Freeze Fine
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Receipt Number Entry Dialog */}
+      <Dialog open={isReceiptNumberDialogOpen} onOpenChange={setIsReceiptNumberDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Receipt Number</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedReceiptCirculation && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-green-800 font-medium mb-2">
+                  Book: {selectedReceiptCirculation.bookTitle}
+                </p>
+                <p className="text-sm text-green-700">
+                  Member: {selectedReceiptCirculation.memberName}
+                </p>
+              </div>
+            )}
+            <div>
+              <Label htmlFor="receiptNumber">Receipt Number *</Label>
+              <Input
+                id="receiptNumber"
+                value={receiptNumberInput}
+                onChange={(e) => setReceiptNumberInput(e.target.value)}
+                placeholder="Enter receipt number"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsReceiptNumberDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleReceiptNumberSubmit}
+                disabled={!receiptNumberInput.trim()}
+              >
+                Submit & Return
               </Button>
             </div>
           </div>

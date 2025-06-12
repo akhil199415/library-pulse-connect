@@ -83,57 +83,54 @@ export const Settings = () => {
     items: ConfigItem[]; 
     setItems: (items: ConfigItem[]) => void;
   }) => (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            placeholder={`Add new ${title.toLowerCase()}`}
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && addItem(items, setItems)}
-          />
-          <Button onClick={() => addItem(items, setItems)} size="sm">
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="space-y-2">
-          {items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-              {editingItem?.id === item.id ? (
-                <div className="flex gap-2 flex-1">
-                  <Input
-                    value={editingItem.name}
-                    onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-                    onKeyPress={(e) => e.key === 'Enter' && updateItem(items, setItems, editingItem)}
-                  />
-                  <Button size="sm" onClick={() => updateItem(items, setItems, editingItem)}>
-                    Save
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <Input
+          placeholder={`Add new ${title.toLowerCase()}`}
+          value={newItemName}
+          onChange={(e) => setNewItemName(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && addItem(items, setItems)}
+          className="flex-1"
+        />
+        <Button onClick={() => addItem(items, setItems)} size="sm" className="px-4">
+          <Plus className="w-4 h-4" />
+        </Button>
+      </div>
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {items.map((item) => (
+          <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+            {editingItem?.id === item.id ? (
+              <div className="flex gap-2 flex-1">
+                <Input
+                  value={editingItem.name}
+                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                  onKeyPress={(e) => e.key === 'Enter' && updateItem(items, setItems, editingItem)}
+                  className="flex-1"
+                />
+                <Button size="sm" onClick={() => updateItem(items, setItems, editingItem)}>
+                  Save
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setEditingItem(null)}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <>
+                <span className="font-medium">{item.name}</span>
+                <div className="flex gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => setEditingItem(item)} className="h-8 w-8 p-0">
+                    <Edit2 className="w-4 h-4" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditingItem(null)}>
-                    Cancel
+                  <Button size="sm" variant="ghost" onClick={() => deleteItem(items, setItems, item.id)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-              ) : (
-                <>
-                  <span>{item.name}</span>
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => setEditingItem(item)}>
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => deleteItem(items, setItems, item.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 
   return (
@@ -144,11 +141,11 @@ export const Settings = () => {
       </div>
 
       {/* Institution Logo Upload */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Institution Logo</CardTitle>
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl">Institution Logo</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="flex items-center gap-6">
             {institutionLogo && (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
@@ -179,75 +176,98 @@ export const Settings = () => {
         </CardContent>
       </Card>
 
-      {/* Genres Configuration */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Book Genres</CardTitle>
+      {/* Book Genres Configuration */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl">Book Configuration</CardTitle>
         </CardHeader>
         <CardContent>
-          <ConfigSection title="Genres" items={genres} setItems={setGenres} />
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Book Genres</h3>
+            <ConfigSection title="Genres" items={genres} setItems={setGenres} />
+          </div>
         </CardContent>
       </Card>
 
-      {isSchool && (
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">School Configuration</CardTitle>
+      {/* Academic Institution Settings */}
+      {(isSchool || isCollege) && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">
+              {isSchool ? "School" : "College"} Configuration
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="classes" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="classes">Classes</TabsTrigger>
-                <TabsTrigger value="divisions">Divisions</TabsTrigger>
-                <TabsTrigger value="streams">Streams</TabsTrigger>
-              </TabsList>
-              <TabsContent value="classes" className="mt-4">
-                <ConfigSection title="Classes" items={classes} setItems={setClasses} />
-              </TabsContent>
-              <TabsContent value="divisions" className="mt-4">
-                <ConfigSection title="Divisions" items={divisions} setItems={setDivisions} />
-              </TabsContent>
-              <TabsContent value="streams" className="mt-4">
-                <ConfigSection title="Streams" items={streams} setItems={setStreams} />
-              </TabsContent>
-            </Tabs>
+            {isSchool && (
+              <Tabs defaultValue="classes" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="classes">Classes</TabsTrigger>
+                  <TabsTrigger value="divisions">Divisions</TabsTrigger>
+                  <TabsTrigger value="streams">Streams</TabsTrigger>
+                </TabsList>
+                <TabsContent value="classes">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Classes</h3>
+                    <ConfigSection title="Classes" items={classes} setItems={setClasses} />
+                  </div>
+                </TabsContent>
+                <TabsContent value="divisions">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Divisions</h3>
+                    <ConfigSection title="Divisions" items={divisions} setItems={setDivisions} />
+                  </div>
+                </TabsContent>
+                <TabsContent value="streams">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Streams</h3>
+                    <ConfigSection title="Streams" items={streams} setItems={setStreams} />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
+
+            {isCollege && (
+              <Tabs defaultValue="courses" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="courses">Courses</TabsTrigger>
+                  <TabsTrigger value="years">Year/Semester</TabsTrigger>
+                  <TabsTrigger value="subjects">Subjects/Branches</TabsTrigger>
+                </TabsList>
+                <TabsContent value="courses">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Courses</h3>
+                    <ConfigSection title="Courses" items={courses} setItems={setCourses} />
+                  </div>
+                </TabsContent>
+                <TabsContent value="years">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Year/Semester</h3>
+                    <ConfigSection title="Year/Semester" items={yearSemesters} setItems={setYearSemesters} />
+                  </div>
+                </TabsContent>
+                <TabsContent value="subjects">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Subjects/Branches</h3>
+                    <ConfigSection title="Subjects/Branches" items={subjects} setItems={setSubjects} />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {isCollege && (
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">College Configuration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="courses" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="courses">Courses</TabsTrigger>
-                <TabsTrigger value="years">Year/Semester</TabsTrigger>
-                <TabsTrigger value="subjects">Subjects/Branches</TabsTrigger>
-              </TabsList>
-              <TabsContent value="courses" className="mt-4">
-                <ConfigSection title="Courses" items={courses} setItems={setCourses} />
-              </TabsContent>
-              <TabsContent value="years" className="mt-4">
-                <ConfigSection title="Year/Semester" items={yearSemesters} setItems={setYearSemesters} />
-              </TabsContent>
-              <TabsContent value="subjects" className="mt-4">
-                <ConfigSection title="Subjects/Branches" items={subjects} setItems={setSubjects} />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      )}
-
+      {/* Non-Academic Institution Settings */}
       {!isSchool && !isCollege && (
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Staff Configuration</CardTitle>
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">Staff Configuration</CardTitle>
           </CardHeader>
           <CardContent>
-            <ConfigSection title="Designations" items={designations} setItems={setDesignations} />
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Designations</h3>
+              <ConfigSection title="Designations" items={designations} setItems={setDesignations} />
+            </div>
           </CardContent>
         </Card>
       )}
