@@ -33,8 +33,8 @@ export const CirculationFilters = ({
     <Card>
       <CardContent className="p-6">
         <div className="space-y-4">
-          {/* First row - Search and Status */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* First row - Search, Status, and Genre */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="searchTerm">Search</Label>
               <Input
@@ -58,10 +58,6 @@ export const CirculationFilters = ({
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          {/* Second row - Genre and Date filters */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <Label htmlFor="filterGenre">Genre</Label>
               <Select value={filterGenre} onValueChange={setFilterGenre}>
@@ -78,9 +74,10 @@ export const CirculationFilters = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-1">
-              {/* Empty space for alignment */}
-            </div>
+          </div>
+
+          {/* Second row - Date filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="dateFrom">From Date</Label>
               <Input

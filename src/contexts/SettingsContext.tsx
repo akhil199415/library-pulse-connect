@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ConfigItem {
@@ -28,6 +27,8 @@ interface SettingsContextType {
   setDesignations: (designations: ConfigItem[]) => void;
   genres: ConfigItem[];
   setGenres: (genres: ConfigItem[]) => void;
+  languages: ConfigItem[];
+  setLanguages: (languages: ConfigItem[]) => void;
   institutionLogo: string;
   setInstitutionLogo: (logo: string) => void;
 }
@@ -130,6 +131,19 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     { id: "8", name: "Literature" }
   ]);
 
+  const [languages, setLanguages] = useState<ConfigItem[]>([
+    { id: "1", name: "English" },
+    { id: "2", name: "Hindi" },
+    { id: "3", name: "Spanish" },
+    { id: "4", name: "French" },
+    { id: "5", name: "German" },
+    { id: "6", name: "Tamil" },
+    { id: "7", name: "Telugu" },
+    { id: "8", name: "Malayalam" },
+    { id: "9", name: "Kannada" },
+    { id: "10", name: "Bengali" }
+  ]);
+
   const [institutionLogo, setInstitutionLogo] = useState<string>("");
 
   return (
@@ -150,6 +164,8 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       setDesignations,
       genres,
       setGenres,
+      languages,
+      setLanguages,
       institutionLogo,
       setInstitutionLogo
     }}>

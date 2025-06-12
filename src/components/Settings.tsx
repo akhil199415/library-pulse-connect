@@ -1,276 +1,459 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit2, Trash2, Upload } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Edit2, Trash2, Upload, School, GraduationCap, Building } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
-
-interface ConfigItem {
-  id: string;
-  name: string;
-}
+import { useToast } from "@/hooks/use-toast";
 
 export const Settings = () => {
-  const { user } = useAuth();
-  const isSchool = user?.institutionType === "School";
-  const isCollege = user?.institutionType === "College";
-
-  const {
-    classes,
-    setClasses,
-    divisions,
-    setDivisions,
-    streams,
-    setStreams,
-    courses,
-    setCourses,
-    yearSemesters,
-    setYearSemesters,
-    subjects,
-    setSubjects,
-    designations,
-    setDesignations,
-    genres,
-    setGenres,
-    institutionLogo,
-    setInstitutionLogo
+  const { 
+    classes, setClasses, 
+    divisions, setDivisions, 
+    streams, setStreams,
+    courses, setCourses, 
+    yearSemesters, setYearSemesters, 
+    subjects, setSubjects,
+    designations, setDesignations, 
+    genres, setGenres,
+    languages, setLanguages,
+    institutionLogo, setInstitutionLogo 
   } = useSettings();
-
+  
+  const { toast } = useToast();
+  const [institutionType, setInstitutionType] = useState("school");
   const [newItemName, setNewItemName] = useState("");
-  const [editingItem, setEditingItem] = useState<ConfigItem | null>(null);
+  const [editingItem, setEditingItem] = useState<{id: string, name: string, type: string} | null>(null);
 
-  const addItem = (items: ConfigItem[], setItems: (items: ConfigItem[]) => void) => {
-    if (newItemName.trim()) {
-      const newItem: ConfigItem = {
-        id: Date.now().toString(),
-        name: newItemName.trim()
-      };
-      setItems([...items, newItem]);
-      setNewItemName("");
+  const handleAddItem = (type: string) => {
+    if (!newItemName.trim()) return;
+
+    const newItem = { id: Date.now().toString(), name: newItemName.trim() };
+
+    switch (type) {
+      case 'classes':
+        setClasses([...classes, newItem]);
+        setNewItemName("");
+        break;
+      case 'divisions':
+        setDivisions([...divisions, newItem]);
+        setNewItemName("");
+        break;
+      case 'streams':
+        setStreams([...streams, newItem]);
+        setNewItemName("");
+        break;
+      case 'courses':
+        setCourses([...courses, newItem]);
+        setNewItemName("");
+        break;
+      case 'yearSemesters':
+        setYearSemesters([...yearSemesters, newItem]);
+        setNewItemName("");
+        break;
+      case 'subjects':
+        setSubjects([...subjects, newItem]);
+        setNewItemName("");
+        break;
+      case 'designations':
+        setDesignations([...designations, newItem]);
+        setNewItemName("");
+        break;
+      case 'genres':
+        setGenres([...genres, newItem]);
+        setNewItemName("");
+        break;
+      case 'languages':
+        setLanguages([...languages, newItem]);
+        setNewItemName("");
+        break;
+      default:
+        break;
     }
+
+    toast({
+      title: "Success",
+      description: `${type.slice(0, -1)} added successfully!`,
+    });
   };
 
-  const updateItem = (items: ConfigItem[], setItems: (items: ConfigItem[]) => void, updatedItem: ConfigItem) => {
-    setItems(items.map(item => item.id === updatedItem.id ? updatedItem : item));
+  const handleEditItem = (item: { id: string, name: string }, type: string) => {
+    setEditingItem({ ...item, type });
+    setNewItemName(item.name);
+  };
+
+  const handleUpdateItem = () => {
+    if (!editingItem || !newItemName.trim()) return;
+
+    const updatedItem = { ...editingItem, name: newItemName.trim() };
+
+    switch (editingItem.type) {
+      case 'classes':
+        setClasses(classes.map(cls => cls.id === editingItem.id ? updatedItem : cls));
+        break;
+      case 'divisions':
+        setDivisions(divisions.map(div => div.id === editingItem.id ? updatedItem : div));
+        break;
+      case 'streams':
+        setStreams(streams.map(stream => stream.id === editingItem.id ? updatedItem : stream));
+        break;
+      case 'courses':
+        setCourses(courses.map(course => course.id === editingItem.id ? updatedItem : course));
+        break;
+      case 'yearSemesters':
+        setYearSemesters(yearSemesters.map(ys => ys.id === editingItem.id ? updatedItem : ys));
+        break;
+      case 'subjects':
+        setSubjects(subjects.map(subject => subject.id === editingItem.id ? updatedItem : subject));
+        break;
+      case 'designations':
+        setDesignations(designations.map(designation => designation.id === editingItem.id ? updatedItem : designation));
+        break;
+      case 'genres':
+        setGenres(genres.map(genre => genre.id === editingItem.id ? updatedItem : genre));
+        break;
+      case 'languages':
+        setLanguages(languages.map(language => language.id === editingItem.id ? updatedItem : language));
+        break;
+      default:
+        break;
+    }
+
     setEditingItem(null);
+    setNewItemName("");
+
+    toast({
+      title: "Success",
+      description: `${editingItem.type.slice(0, -1)} updated successfully!`,
+    });
   };
 
-  const deleteItem = (items: ConfigItem[], setItems: (items: ConfigItem[]) => void, id: string) => {
-    setItems(items.filter(item => item.id !== id));
-  };
-
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setInstitutionLogo(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleDeleteItem = (id: string, type: string) => {
+    switch (type) {
+      case 'classes':
+        setClasses(classes.filter(cls => cls.id !== id));
+        break;
+      case 'divisions':
+        setDivisions(divisions.filter(div => div.id !== id));
+        break;
+      case 'streams':
+        setStreams(streams.filter(stream => stream.id !== id));
+        break;
+      case 'courses':
+        setCourses(courses.filter(course => course.id !== id));
+        break;
+      case 'yearSemesters':
+        setYearSemesters(yearSemesters.filter(ys => ys.id !== id));
+        break;
+      case 'subjects':
+        setSubjects(subjects.filter(subject => subject.id !== id));
+        break;
+      case 'designations':
+        setDesignations(designations.filter(designation => designation.id !== id));
+        break;
+      case 'genres':
+        setGenres(genres.filter(genre => genre.id !== id));
+        break;
+      case 'languages':
+        setLanguages(languages.filter(language => language.id !== id));
+        break;
+      default:
+        break;
     }
+
+    toast({
+      title: "Success",
+      description: `${type.slice(0, -1)} deleted successfully!`,
+    });
   };
 
-  const ConfigSection = ({ 
-    title, 
-    items, 
-    setItems 
-  }: { 
-    title: string; 
-    items: ConfigItem[]; 
-    setItems: (items: ConfigItem[]) => void;
-  }) => (
-    <div className="space-y-4">
-      <div className="flex gap-2">
-        <Input
-          placeholder={`Add new ${title.toLowerCase()}`}
-          value={newItemName}
-          onChange={(e) => setNewItemName(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && addItem(items, setItems)}
-          className="flex-1"
-        />
-        <Button onClick={() => addItem(items, setItems)} size="sm" className="px-4">
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
-      <div className="space-y-2 max-h-64 overflow-y-auto">
-        {items.map((item) => (
-          <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
-            {editingItem?.id === item.id ? (
-              <div className="flex gap-2 flex-1">
-                <Input
-                  value={editingItem.name}
-                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-                  onKeyPress={(e) => e.key === 'Enter' && updateItem(items, setItems, editingItem)}
-                  className="flex-1"
-                />
-                <Button size="sm" onClick={() => updateItem(items, setItems, editingItem)}>
-                  Save
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setEditingItem(null)}>
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <>
-                <span className="font-medium">{item.name}</span>
-                <div className="flex gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => setEditingItem(item)} className="h-8 w-8 p-0">
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => deleteItem(items, setItems, item.id)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
+  const renderItemBadge = (item: { id: string, name: string }, type: string) => (
+    <Badge key={item.id} className="gap-2">
+      {item.name}
+      <Edit2
+        onClick={() => handleEditItem(item, type)}
+        className="w-3 h-3 cursor-pointer hover:opacity-80"
+      />
+      <Trash2
+        onClick={() => handleDeleteItem(item.id, type)}
+        className="w-3 h-3 cursor-pointer hover:opacity-80"
+      />
+    </Badge>
   );
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
-        <p className="text-muted-foreground">{user?.institutionName} - {user?.institutionType}</p>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-foreground">Settings</h1>
       </div>
 
-      {/* Institution Logo Upload */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl">Institution Logo</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-6">
-            {institutionLogo && (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <img src={institutionLogo} alt="Institution Logo" className="w-24 h-24 object-contain" />
+      <Tabs defaultValue="general" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="academic">Academic</TabsTrigger>
+          <TabsTrigger value="library">Library</TabsTrigger>
+          <TabsTrigger value="institution">Institution</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="w-5 h-5" />
+                Institution Type
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="institutionType">Select Institution Type</Label>
+                  <Select value={institutionType} onValueChange={setInstitutionType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="school">School</SelectItem>
+                      <SelectItem value="college">College/University</SelectItem>
+                      <SelectItem value="other">Other Institution</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            )}
-            <div className="flex-1">
-              <Label htmlFor="logo-upload" className="cursor-pointer">
-                <Button variant="outline" className="gap-2" asChild>
-                  <span>
-                    <Upload className="w-4 h-4" />
-                    Upload Logo
-                  </span>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Designations</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add new designation"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                />
+                <Button onClick={() => handleAddItem('designations')}>
+                  <Plus className="w-4 h-4" />
                 </Button>
-              </Label>
-              <Input
-                id="logo-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                className="hidden"
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                Recommended: 200x200 pixels, PNG or JPG format
-              </p>
-            </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {designations.map((designation) => renderItemBadge(designation, 'designations'))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="academic" className="space-y-6">
+          {institutionType === "school" && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <School className="w-5 h-5" />
+                    School Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Classes</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add new class"
+                          value={newItemName}
+                          onChange={(e) => setNewItemName(e.target.value)}
+                        />
+                        <Button onClick={() => handleAddItem('classes')}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {classes.map((cls) => renderItemBadge(cls, 'classes'))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Divisions</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add new division"
+                          value={newItemName}
+                          onChange={(e) => setNewItemName(e.target.value)}
+                        />
+                        <Button onClick={() => handleAddItem('divisions')}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {divisions.map((division) => renderItemBadge(division, 'divisions'))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Streams</h3>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Add new stream"
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                      />
+                      <Button onClick={() => handleAddItem('streams')}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {streams.map((stream) => renderItemBadge(stream, 'streams'))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {institutionType === "college" && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5" />
+                    College Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Courses</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add new course"
+                          value={newItemName}
+                          onChange={(e) => setNewItemName(e.target.value)}
+                        />
+                        <Button onClick={() => handleAddItem('courses')}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {courses.map((course) => renderItemBadge(course, 'courses'))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Year/Semester</h3>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add new year/semester"
+                          value={newItemName}
+                          onChange={(e) => setNewItemName(e.target.value)}
+                        />
+                        <Button onClick={() => handleAddItem('yearSemesters')}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {yearSemesters.map((ys) => renderItemBadge(ys, 'yearSemesters'))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Subjects/Branches</h3>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Add new subject/branch"
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                      />
+                      <Button onClick={() => handleAddItem('subjects')}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {subjects.map((subject) => renderItemBadge(subject, 'subjects'))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="library" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Book Genres</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add new genre"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                  />
+                  <Button onClick={() => handleAddItem('genres')}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {genres.map((genre) => renderItemBadge(genre, 'genres'))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Languages</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add new language"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                  />
+                  <Button onClick={() => handleAddItem('languages')}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {languages.map((language) => renderItemBadge(language, 'languages'))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      {/* Book Genres Configuration */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl">Book Configuration</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Book Genres</h3>
-            <ConfigSection title="Genres" items={genres} setItems={setGenres} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Academic Institution Settings */}
-      {(isSchool || isCollege) && (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">
-              {isSchool ? "School" : "College"} Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isSchool && (
-              <Tabs defaultValue="classes" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="classes">Classes</TabsTrigger>
-                  <TabsTrigger value="divisions">Divisions</TabsTrigger>
-                  <TabsTrigger value="streams">Streams</TabsTrigger>
-                </TabsList>
-                <TabsContent value="classes">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Classes</h3>
-                    <ConfigSection title="Classes" items={classes} setItems={setClasses} />
-                  </div>
-                </TabsContent>
-                <TabsContent value="divisions">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Divisions</h3>
-                    <ConfigSection title="Divisions" items={divisions} setItems={setDivisions} />
-                  </div>
-                </TabsContent>
-                <TabsContent value="streams">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Streams</h3>
-                    <ConfigSection title="Streams" items={streams} setItems={setStreams} />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            )}
-
-            {isCollege && (
-              <Tabs defaultValue="courses" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="courses">Courses</TabsTrigger>
-                  <TabsTrigger value="years">Year/Semester</TabsTrigger>
-                  <TabsTrigger value="subjects">Subjects/Branches</TabsTrigger>
-                </TabsList>
-                <TabsContent value="courses">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Courses</h3>
-                    <ConfigSection title="Courses" items={courses} setItems={setCourses} />
-                  </div>
-                </TabsContent>
-                <TabsContent value="years">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Year/Semester</h3>
-                    <ConfigSection title="Year/Semester" items={yearSemesters} setItems={setYearSemesters} />
-                  </div>
-                </TabsContent>
-                <TabsContent value="subjects">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Subjects/Branches</h3>
-                    <ConfigSection title="Subjects/Branches" items={subjects} setItems={setSubjects} />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Non-Academic Institution Settings */}
-      {!isSchool && !isCollege && (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Staff Configuration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Designations</h3>
-              <ConfigSection title="Designations" items={designations} setItems={setDesignations} />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="institution" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Institution Logo</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                {institutionLogo && (
+                  <img src={institutionLogo} alt="Institution Logo" className="w-16 h-16 object-contain" />
+                )}
+                <Button variant="outline" className="gap-2">
+                  <Upload className="w-4 h-4" />
+                  Upload Logo
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
