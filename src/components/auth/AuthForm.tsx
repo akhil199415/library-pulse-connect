@@ -17,6 +17,7 @@ const AuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   // Forgot Password Flow
   const [forgotPassword, setForgotPassword] = useState(false);
@@ -35,32 +36,106 @@ const AuthForm = () => {
     name: "",
     institutionType: "School" as InstitutionType,
     institutionName: "",
+    activationKey: "",
   });
 
   const institutionTypes: InstitutionType[] = ["School", "College", "Public Institution", "Hotel", "Hospital", "NGO"];
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({ ...loginData, [e.target.id]: e.target.value });
+    // Clear errors when user starts typing
+    if (errors[e.target.id]) {
+      setErrors({ ...errors, [e.target.id]: "" });
+    }
   };
 
   const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
     setSignupData({ ...signupData, [e.target.id]: e.target.value });
+    // Clear errors when user starts typing
+    if (errors[e.target.id]) {
+      setErrors({ ...errors, [e.target.id]: "" });
+    }
+  };
+
+  const validateLogin = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!loginData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(loginData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    
+    if (!loginData.password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (loginData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+    
+    return newErrors;
+  };
+
+  const validateSignup = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!signupData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+    
+    if (!signupData.institutionName.trim()) {
+      newErrors.institutionName = "Institution name is required";
+    }
+    
+    if (!signupData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(signupData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    
+    if (!signupData.password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (signupData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+    
+    return newErrors;
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const validationErrors = validateLogin();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    
     setIsLoading(true);
+    setErrors({});
     
     // Simulate login process
     setTimeout(() => {
-      login(loginData);
-      setIsLoading(false);
+      try {
+        login(loginData);
+        setIsLoading(false);
+      } catch (error) {
+        setErrors({ general: "Invalid email or password. Please try again." });
+        setIsLoading(false);
+      }
     }, 1000);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const validationErrors = validateSignup();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    
     setIsLoading(true);
+    setErrors({});
     
     setTimeout(() => {
       const newUser = {
@@ -147,6 +222,12 @@ const AuthForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {errors.general && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-red-600">{errors.general}</p>
+            </div>
+          )}
+          
           <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
@@ -157,8 +238,9 @@ const AuthForm = () => {
                   placeholder="Enter your full name"
                   value={signupData.name}
                   onChange={handleSignupChange}
-                  required
+                  className={errors.name ? "border-red-500" : ""}
                 />
+                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
               </div>
             )}
             {!isLogin && (
@@ -170,8 +252,9 @@ const AuthForm = () => {
                   placeholder="Enter your institution name"
                   value={signupData.institutionName}
                   onChange={handleSignupChange}
-                  required
+                  className={errors.institutionName ? "border-red-500" : ""}
                 />
+                {errors.institutionName && <p className="text-sm text-red-500">{errors.institutionName}</p>}
               </div>
             )}
             {!isLogin && (
@@ -189,6 +272,18 @@ const AuthForm = () => {
                 </Select>
               </div>
             )}
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="activationKey">Activation Key (Optional)</Label>
+                <Input
+                  id="activationKey"
+                  type="text"
+                  placeholder="Enter activation key if provided"
+                  value={signupData.activationKey}
+                  onChange={handleSignupChange}
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <Input
@@ -197,8 +292,9 @@ const AuthForm = () => {
                 placeholder="Enter your email"
                 value={isLogin ? loginData.email : signupData.email}
                 onChange={isLogin ? handleLoginChange : handleSignupChange}
-                required
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -209,7 +305,7 @@ const AuthForm = () => {
                   placeholder="Enter your password"
                   value={isLogin ? loginData.password : signupData.password}
                   onChange={isLogin ? handleLoginChange : handleSignupChange}
-                  required
+                  className={errors.password ? "border-red-500" : ""}
                 />
                 <Button
                   type="button"
@@ -227,6 +323,7 @@ const AuthForm = () => {
                   {isLogin ? (showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />) : (showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />)}
                 </Button>
               </div>
+              {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
             </div>
             
             <Button type="submit" className="w-full" disabled={isLoading}>
@@ -234,7 +331,7 @@ const AuthForm = () => {
             </Button>
           </form>
           
-          {isLogin ? (
+          {isLogin && (
             <div className="mt-4 text-center">
               <Button
                 variant="link"
@@ -244,12 +341,15 @@ const AuthForm = () => {
                 Forgot Password?
               </Button>
             </div>
-          ) : null}
+          )}
           
           <div className="mt-4">
             <Button
               variant="ghost"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setErrors({});
+              }}
               className="w-full"
             >
               {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
