@@ -251,6 +251,7 @@ const CirculationSystem = () => {
                         {record.status === "issued" && (
                           <Button
                             size="sm"
+                            variant="default"
                             onClick={() => confirmReturn(record.id)}
                             className="bg-green-600 hover:bg-green-700 text-white"
                           >
