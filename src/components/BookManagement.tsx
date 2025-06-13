@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,7 +75,7 @@ export const BookManagement = () => {
       author: "Dr. Sarah Johnson",
       genre: "Science",
       publisher: "Academic Press",
-      isbn: "978-0987654321",
+      bookNumberField: "978-0987654321",
       price: 620,
       shelf: "B",
       rack: "3",
@@ -94,7 +93,7 @@ export const BookManagement = () => {
       author: "Prof. Mike Wilson",
       genre: "Mathematics",
       publisher: "Math Publications",
-      isbn: "978-0111222333",
+      bookNumberField: "978-0111222333",
       price: 550,
       shelf: "C",
       rack: "2",
@@ -112,7 +111,7 @@ export const BookManagement = () => {
       author: "Dr. Lisa Brown",
       genre: "History",
       publisher: "History Press",
-      isbn: "978-0444555666",
+      bookNumberField: "978-0444555666",
       price: 480,
       shelf: "D",
       rack: "1",
