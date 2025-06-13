@@ -6,85 +6,77 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSettings } from "@/contexts/SettingsContext";
-import { CheckCircle } from "lucide-react";
-
-interface Book {
-  id: string;
-  isbn: string;
-  title: string;
-  author: string;
-  language?: string;
-  genre: string;
-  publisher: string;
-  publicationYear: string;
-  price: number;
-  location: string;
-  condition?: string;
-  type?: string;
-  source: string;
-  invoiceNumber?: string;
-  purchaseDate: string;
-  status: "available" | "issued" | "damaged" | "lost";
-  bookNumber: string;
-  totalCopies: number;
-  availableCopies: number;
-  description?: string;
-}
+import { useToast } from "@/hooks/use-toast";
 
 interface BookEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  book: Book | null;
-  onUpdateBook: (book: Book) => void;
+  book: any;
+  onUpdateBook: (updatedBook: any) => void;
 }
 
 export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEditDialogProps) => {
   const { genres, languages } = useSettings();
-  const [formData, setFormData] = useState<Book | null>(null);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [showSuccess, setShowSuccess] = useState(false);
+  const { toast } = useToast();
+  
+  const [formData, setFormData] = useState({
+    isbn: "",
+    title: "",
+    author: "",
+    language: "",
+    genre: "",
+    publisher: "",
+    publicationYear: "",
+    price: 0,
+    location: "",
+    condition: "",
+    type: "",
+    source: "",
+    invoiceNumber: "",
+    purchaseDate: "",
+    totalCopies: 1,
+    description: ""
+  });
 
   useEffect(() => {
     if (book) {
-      setFormData({ ...book });
-      setShowSuccess(false);
+      setFormData({
+        isbn: book.isbn || "",
+        title: book.title || "",
+        author: book.author || "",
+        language: book.language || "",
+        genre: book.genre || "",
+        publisher: book.publisher || "",
+        publicationYear: book.publicationYear || "",
+        price: book.price || 0,
+        location: book.location || "",
+        condition: book.condition || "",
+        type: book.type || "",
+        source: book.source || "",
+        invoiceNumber: book.invoiceNumber || "",
+        purchaseDate: book.purchaseDate || "",
+        totalCopies: book.totalCopies || 1,
+        description: book.description || ""
+      });
     }
   }, [book]);
 
-  const validateForm = () => {
-    const errors: Record<string, string> = {};
-    
-    if (!formData?.isbn?.trim()) errors.isbn = "ISBN is required *";
-    if (!formData?.title?.trim()) errors.title = "Title is required *";
-    if (!formData?.author?.trim()) errors.author = "Author is required *";
-    if (!formData?.genre?.trim()) errors.genre = "Genre is required *";
-    if (!formData?.publisher?.trim()) errors.publisher = "Publisher is required *";
-    if (!formData?.publicationYear?.trim()) errors.publicationYear = "Publication Year is required *";
-    if (!formData?.price || formData.price <= 0) errors.price = "Valid price is required *";
-    if (!formData?.location?.trim()) errors.location = "Location is required *";
-    if (!formData?.source?.trim()) errors.source = "Source is required *";
-    if (!formData?.purchaseDate?.trim()) errors.purchaseDate = "Purchase Date is required *";
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
   const handleSave = () => {
-    if (!formData || !validateForm()) return;
+    const updatedBook = {
+      ...book,
+      ...formData
+    };
 
-    onUpdateBook(formData);
-    setShowSuccess(true);
-    
-    // Auto-hide success message after 3 seconds
-    setTimeout(() => {
-      setShowSuccess(false);
-      onClose();
-    }, 3000);
+    onUpdateBook(updatedBook);
+    onClose();
+
+    toast({
+      title: "Success",
+      description: "Changes saved successfully!",
+      className: "fixed top-4 right-4 z-50"
+    });
   };
-
-  if (!formData) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -93,52 +85,28 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
           <DialogTitle>Edit Book</DialogTitle>
         </DialogHeader>
 
-        {showSuccess && (
-          <Alert className="bg-green-50 border-green-200 mb-4">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-700">
-              Changes saved successfully!
-            </AlertDescription>
-          </Alert>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="isbn">ISBN *</Label>
+            <Label htmlFor="isbn">ISBN</Label>
             <Input
               id="isbn"
               value={formData.isbn}
               onChange={(e) => setFormData({...formData, isbn: e.target.value})}
-              className={validationErrors.isbn ? "border-red-500" : ""}
             />
-            {validationErrors.isbn && <p className="text-red-500 text-sm mt-1">{validationErrors.isbn}</p>}
           </div>
 
           <div>
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">Title</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
-              className={validationErrors.title ? "border-red-500" : ""}
             />
-            {validationErrors.title && <p className="text-red-500 text-sm mt-1">{validationErrors.title}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="author">Author *</Label>
-            <Input
-              id="author"
-              value={formData.author}
-              onChange={(e) => setFormData({...formData, author: e.target.value})}
-              className={validationErrors.author ? "border-red-500" : ""}
-            />
-            {validationErrors.author && <p className="text-red-500 text-sm mt-1">{validationErrors.author}</p>}
           </div>
 
           <div>
             <Label htmlFor="language">Language</Label>
-            <Select value={formData.language || ""} onValueChange={(value) => setFormData({...formData, language: value})}>
+            <Select value={formData.language} onValueChange={(value) => setFormData({...formData, language: value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
@@ -153,9 +121,18 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
           </div>
 
           <div>
-            <Label htmlFor="genre">Genre *</Label>
+            <Label htmlFor="author">Author</Label>
+            <Input
+              id="author"
+              value={formData.author}
+              onChange={(e) => setFormData({...formData, author: e.target.value})}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="genre">Genre</Label>
             <Select value={formData.genre} onValueChange={(value) => setFormData({...formData, genre: value})}>
-              <SelectTrigger className={validationErrors.genre ? "border-red-500" : ""}>
+              <SelectTrigger>
                 <SelectValue placeholder="Select genre" />
               </SelectTrigger>
               <SelectContent>
@@ -166,57 +143,48 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
                 ))}
               </SelectContent>
             </Select>
-            {validationErrors.genre && <p className="text-red-500 text-sm mt-1">{validationErrors.genre}</p>}
           </div>
 
           <div>
-            <Label htmlFor="publisher">Publisher *</Label>
+            <Label htmlFor="publisher">Publisher</Label>
             <Input
               id="publisher"
               value={formData.publisher}
               onChange={(e) => setFormData({...formData, publisher: e.target.value})}
-              className={validationErrors.publisher ? "border-red-500" : ""}
             />
-            {validationErrors.publisher && <p className="text-red-500 text-sm mt-1">{validationErrors.publisher}</p>}
           </div>
 
           <div>
-            <Label htmlFor="publicationYear">Publication Year *</Label>
+            <Label htmlFor="publicationYear">Publication Year</Label>
             <Input
               id="publicationYear"
               value={formData.publicationYear}
               onChange={(e) => setFormData({...formData, publicationYear: e.target.value})}
-              className={validationErrors.publicationYear ? "border-red-500" : ""}
             />
-            {validationErrors.publicationYear && <p className="text-red-500 text-sm mt-1">{validationErrors.publicationYear}</p>}
           </div>
 
           <div>
-            <Label htmlFor="price">Price *</Label>
+            <Label htmlFor="price">Price</Label>
             <Input
               id="price"
               type="number"
               value={formData.price}
               onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-              className={validationErrors.price ? "border-red-500" : ""}
             />
-            {validationErrors.price && <p className="text-red-500 text-sm mt-1">{validationErrors.price}</p>}
           </div>
 
           <div>
-            <Label htmlFor="location">Location *</Label>
+            <Label htmlFor="location">Location</Label>
             <Input
               id="location"
               value={formData.location}
               onChange={(e) => setFormData({...formData, location: e.target.value})}
-              className={validationErrors.location ? "border-red-500" : ""}
             />
-            {validationErrors.location && <p className="text-red-500 text-sm mt-1">{validationErrors.location}</p>}
           </div>
 
           <div>
             <Label htmlFor="condition">Condition</Label>
-            <Select value={formData.condition || ""} onValueChange={(value) => setFormData({...formData, condition: value})}>
+            <Select value={formData.condition} onValueChange={(value) => setFormData({...formData, condition: value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
@@ -231,7 +199,7 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
 
           <div>
             <Label htmlFor="type">Type</Label>
-            <Select value={formData.type || ""} onValueChange={(value) => setFormData({...formData, type: value})}>
+            <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -247,9 +215,9 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
           </div>
 
           <div>
-            <Label htmlFor="source">Source *</Label>
+            <Label htmlFor="source">Source</Label>
             <Select value={formData.source} onValueChange={(value) => setFormData({...formData, source: value})}>
-              <SelectTrigger className={validationErrors.source ? "border-red-500" : ""}>
+              <SelectTrigger>
                 <SelectValue placeholder="Select source" />
               </SelectTrigger>
               <SelectContent>
@@ -259,28 +227,25 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
                 <SelectItem value="None">None</SelectItem>
               </SelectContent>
             </Select>
-            {validationErrors.source && <p className="text-red-500 text-sm mt-1">{validationErrors.source}</p>}
           </div>
 
           <div>
             <Label htmlFor="invoiceNumber">Invoice Number</Label>
             <Input
               id="invoiceNumber"
-              value={formData.invoiceNumber || ""}
+              value={formData.invoiceNumber}
               onChange={(e) => setFormData({...formData, invoiceNumber: e.target.value})}
             />
           </div>
 
           <div>
-            <Label htmlFor="purchaseDate">Purchase Date *</Label>
+            <Label htmlFor="purchaseDate">Purchase Date</Label>
             <Input
               id="purchaseDate"
               type="date"
               value={formData.purchaseDate}
               onChange={(e) => setFormData({...formData, purchaseDate: e.target.value})}
-              className={validationErrors.purchaseDate ? "border-red-500" : ""}
             />
-            {validationErrors.purchaseDate && <p className="text-red-500 text-sm mt-1">{validationErrors.purchaseDate}</p>}
           </div>
 
           <div>
@@ -289,16 +254,7 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
               id="totalCopies"
               type="number"
               value={formData.totalCopies}
-              onChange={(e) => setFormData({...formData, totalCopies: parseInt(e.target.value) || 0})}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="bookNumber">Book Number</Label>
-            <Input
-              id="bookNumber"
-              value={formData.bookNumber}
-              onChange={(e) => setFormData({...formData, bookNumber: e.target.value})}
+              onChange={(e) => setFormData({...formData, totalCopies: parseInt(e.target.value) || 1})}
             />
           </div>
 
@@ -306,7 +262,7 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              value={formData.description || ""}
+              value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               rows={3}
             />
