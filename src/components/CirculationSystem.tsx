@@ -286,7 +286,7 @@ const CirculationSystem = () => {
                 Cancel
               </Button>
               <Button
-                variant="primary"
+                variant="default"
                 onClick={() => returnRecord(returnConfirmation?.recordId || "")}
               >
                 Return Book
