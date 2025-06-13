@@ -53,9 +53,6 @@ export const MemberManagement = () => {
 
   const handleAddMember = (member: Member) => {
     setMembers([...members, member]);
-    setSuccessMessage("Member added successfully!");
-    setShowSuccessMessage(true);
-    setTimeout(() => setShowSuccessMessage(false), 3000);
   };
 
   const handleUpdateMember = (updatedMember: Member) => {
@@ -111,7 +108,7 @@ export const MemberManagement = () => {
       {/* Success Message */}
       {showSuccessMessage && (
         <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg">
-          <div className="text-green-800 font-medium bg-green-100 px-3 py-2 rounded">{successMessage}</div>
+          <div className="text-green-800 font-medium">{successMessage}</div>
         </div>
       )}
 
