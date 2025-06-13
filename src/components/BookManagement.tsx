@@ -139,6 +139,7 @@ export const BookManagement = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [deleteIsbn, setDeleteIsbn] = useState("");
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
   const [newBook, setNewBook] = useState({
     title: "",
