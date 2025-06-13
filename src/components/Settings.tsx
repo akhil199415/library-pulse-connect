@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,9 +8,26 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Edit2, Trash2, Upload, School, GraduationCap, Building } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Edit2, Trash2, Upload, School, GraduationCap, Building, StickyNote, Bell } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useToast } from "@/hooks/use-toast";
+
+interface Note {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
+interface Reminder {
+  id: string;
+  title: string;
+  content: string;
+  dueDate: string;
+  createdAt: string;
+}
 
 export const Settings = () => {
   const { 
@@ -22,13 +40,35 @@ export const Settings = () => {
     designations, setDesignations, 
     genres, setGenres,
     languages, setLanguages,
-    institutionLogo, setInstitutionLogo 
+    publishers, setPublishers,
+    institutionLogo, setInstitutionLogo,
+    backgroundColor, setBackgroundColor 
   } = useSettings();
   
   const { toast } = useToast();
   const [institutionType, setInstitutionType] = useState("school");
   const [newItemName, setNewItemName] = useState("");
   const [editingItem, setEditingItem] = useState<{id: string, name: string, type: string} | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{item: {id: string, name: string}, type: string} | null>(null);
+  
+  // Notes and Reminders
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [newNote, setNewNote] = useState({ title: "", content: "" });
+  const [newReminder, setNewReminder] = useState({ title: "", content: "", dueDate: "" });
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+
+  const backgroundColors = [
+    { name: "Black", value: "#000000" },
+    { name: "Deep Blue", value: "#1e3a8a" },
+    { name: "Dark Green", value: "#14532d" },
+    { name: "Purple", value: "#581c87" },
+    { name: "Maroon", value: "#7f1d1d" },
+    { name: "Teal", value: "#134e4a" },
+    { name: "Indigo", value: "#312e81" },
+    { name: "Slate", value: "#1e293b" }
+  ];
 
   const handleAddItem = (type: string) => {
     if (!newItemName.trim()) return;
@@ -38,44 +78,39 @@ export const Settings = () => {
     switch (type) {
       case 'classes':
         setClasses([...classes, newItem]);
-        setNewItemName("");
         break;
       case 'divisions':
         setDivisions([...divisions, newItem]);
-        setNewItemName("");
         break;
       case 'streams':
         setStreams([...streams, newItem]);
-        setNewItemName("");
         break;
       case 'courses':
         setCourses([...courses, newItem]);
-        setNewItemName("");
         break;
       case 'yearSemesters':
         setYearSemesters([...yearSemesters, newItem]);
-        setNewItemName("");
         break;
       case 'subjects':
         setSubjects([...subjects, newItem]);
-        setNewItemName("");
         break;
       case 'designations':
         setDesignations([...designations, newItem]);
-        setNewItemName("");
         break;
       case 'genres':
         setGenres([...genres, newItem]);
-        setNewItemName("");
         break;
       case 'languages':
         setLanguages([...languages, newItem]);
-        setNewItemName("");
+        break;
+      case 'publishers':
+        setPublishers([...publishers, newItem]);
         break;
       default:
         break;
     }
 
+    setNewItemName("");
     toast({
       title: "Success",
       description: `${type.slice(0, -1)} added successfully!`,
@@ -120,6 +155,9 @@ export const Settings = () => {
       case 'languages':
         setLanguages(languages.map(language => language.id === editingItem.id ? updatedItem : language));
         break;
+      case 'publishers':
+        setPublishers(publishers.map(publisher => publisher.id === editingItem.id ? updatedItem : publisher));
+        break;
       default:
         break;
     }
@@ -133,39 +171,51 @@ export const Settings = () => {
     });
   };
 
-  const handleDeleteItem = (id: string, type: string) => {
+  const handleDeleteConfirmation = (item: { id: string, name: string }, type: string) => {
+    setDeleteConfirmation({ item, type });
+  };
+
+  const handleDeleteItem = () => {
+    if (!deleteConfirmation) return;
+
+    const { item, type } = deleteConfirmation;
+
     switch (type) {
       case 'classes':
-        setClasses(classes.filter(cls => cls.id !== id));
+        setClasses(classes.filter(cls => cls.id !== item.id));
         break;
       case 'divisions':
-        setDivisions(divisions.filter(div => div.id !== id));
+        setDivisions(divisions.filter(div => div.id !== item.id));
         break;
       case 'streams':
-        setStreams(streams.filter(stream => stream.id !== id));
+        setStreams(streams.filter(stream => stream.id !== item.id));
         break;
       case 'courses':
-        setCourses(courses.filter(course => course.id !== id));
+        setCourses(courses.filter(course => course.id !== item.id));
         break;
       case 'yearSemesters':
-        setYearSemesters(yearSemesters.filter(ys => ys.id !== id));
+        setYearSemesters(yearSemesters.filter(ys => ys.id !== item.id));
         break;
       case 'subjects':
-        setSubjects(subjects.filter(subject => subject.id !== id));
+        setSubjects(subjects.filter(subject => subject.id !== item.id));
         break;
       case 'designations':
-        setDesignations(designations.filter(designation => designation.id !== id));
+        setDesignations(designations.filter(designation => designation.id !== item.id));
         break;
       case 'genres':
-        setGenres(genres.filter(genre => genre.id !== id));
+        setGenres(genres.filter(genre => genre.id !== item.id));
         break;
       case 'languages':
-        setLanguages(languages.filter(language => language.id !== id));
+        setLanguages(languages.filter(language => language.id !== item.id));
+        break;
+      case 'publishers':
+        setPublishers(publishers.filter(publisher => publisher.id !== item.id));
         break;
       default:
         break;
     }
 
+    setDeleteConfirmation(null);
     toast({
       title: "Success",
       description: `${type.slice(0, -1)} deleted successfully!`,
@@ -180,11 +230,42 @@ export const Settings = () => {
         className="w-3 h-3 cursor-pointer hover:opacity-80"
       />
       <Trash2
-        onClick={() => handleDeleteItem(item.id, type)}
+        onClick={() => handleDeleteConfirmation(item, type)}
         className="w-3 h-3 cursor-pointer hover:opacity-80"
       />
     </Badge>
   );
+
+  const handleAddNote = () => {
+    if (!newNote.title.trim() || !newNote.content.trim()) return;
+
+    const note: Note = {
+      id: Date.now().toString(),
+      title: newNote.title.trim(),
+      content: newNote.content.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    setNotes([...notes, note]);
+    setNewNote({ title: "", content: "" });
+    toast({ title: "Success", description: "Note added successfully!" });
+  };
+
+  const handleAddReminder = () => {
+    if (!newReminder.title.trim() || !newReminder.content.trim() || !newReminder.dueDate) return;
+
+    const reminder: Reminder = {
+      id: Date.now().toString(),
+      title: newReminder.title.trim(),
+      content: newReminder.content.trim(),
+      dueDate: newReminder.dueDate,
+      createdAt: new Date().toISOString()
+    };
+
+    setReminders([...reminders, reminder]);
+    setNewReminder({ title: "", content: "", dueDate: "" });
+    toast({ title: "Success", description: "Reminder added successfully!" });
+  };
 
   return (
     <div className="space-y-6">
@@ -193,11 +274,12 @@ export const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="academic">Academic</TabsTrigger>
           <TabsTrigger value="library">Library</TabsTrigger>
           <TabsTrigger value="institution">Institution</TabsTrigger>
+          <TabsTrigger value="notes">Notes & Reminders</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -229,6 +311,30 @@ export const Settings = () => {
 
           <Card>
             <CardHeader>
+              <CardTitle>Background Color</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {backgroundColors.map((color) => (
+                  <div key={color.value} className="flex items-center space-x-2">
+                    <div
+                      className="w-8 h-8 rounded border cursor-pointer"
+                      style={{ backgroundColor: color.value }}
+                      onClick={() => setBackgroundColor(color.value)}
+                    />
+                    <label className="text-sm">{color.name}</label>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4">
+                <Label>Selected Color: {backgroundColor}</Label>
+                <div className="w-full h-4 rounded mt-2" style={{ backgroundColor }}></div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Designations</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -238,9 +344,13 @@ export const Settings = () => {
                   value={newItemName}
                   onChange={(e) => setNewItemName(e.target.value)}
                 />
-                <Button onClick={() => handleAddItem('designations')}>
-                  <Plus className="w-4 h-4" />
-                </Button>
+                {editingItem ? (
+                  <Button onClick={handleUpdateItem}>Update</Button>
+                ) : (
+                  <Button onClick={() => handleAddItem('designations')}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 {designations.map((designation) => renderItemBadge(designation, 'designations'))}
@@ -402,9 +512,13 @@ export const Settings = () => {
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
                   />
-                  <Button onClick={() => handleAddItem('genres')}>
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                  {editingItem?.type === 'genres' ? (
+                    <Button onClick={handleUpdateItem}>Update</Button>
+                  ) : (
+                    <Button onClick={() => handleAddItem('genres')}>
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {genres.map((genre) => renderItemBadge(genre, 'genres'))}
@@ -423,12 +537,41 @@ export const Settings = () => {
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
                   />
-                  <Button onClick={() => handleAddItem('languages')}>
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                  {editingItem?.type === 'languages' ? (
+                    <Button onClick={handleUpdateItem}>Update</Button>
+                  ) : (
+                    <Button onClick={() => handleAddItem('languages')}>
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {languages.map((language) => renderItemBadge(language, 'languages'))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Publishers</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add new publisher"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                  />
+                  {editingItem?.type === 'publishers' ? (
+                    <Button onClick={handleUpdateItem}>Update</Button>
+                  ) : (
+                    <Button onClick={() => handleAddItem('publishers')}>
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {publishers.map((publisher) => renderItemBadge(publisher, 'publishers'))}
                 </div>
               </CardContent>
             </Card>
@@ -453,7 +596,127 @@ export const Settings = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="notes" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <StickyNote className="w-5 h-5" />
+                  Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Note title"
+                    value={newNote.title}
+                    onChange={(e) => setNewNote({...newNote, title: e.target.value})}
+                  />
+                  <Textarea
+                    placeholder="Note content"
+                    value={newNote.content}
+                    onChange={(e) => setNewNote({...newNote, content: e.target.value})}
+                    rows={3}
+                  />
+                  <Button onClick={handleAddNote}>Add Note</Button>
+                </div>
+                <div className="space-y-2">
+                  {notes.map((note) => (
+                    <Card key={note.id} className="p-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{note.title}</h4>
+                          <p className="text-sm text-muted-foreground">{note.content}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="outline" onClick={() => setEditingNote(note)}>
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setNotes(notes.filter(n => n.id !== note.id))}>
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="w-5 h-5" />
+                  Reminders
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Reminder title"
+                    value={newReminder.title}
+                    onChange={(e) => setNewReminder({...newReminder, title: e.target.value})}
+                  />
+                  <Textarea
+                    placeholder="Reminder content"
+                    value={newReminder.content}
+                    onChange={(e) => setNewReminder({...newReminder, content: e.target.value})}
+                    rows={2}
+                  />
+                  <Input
+                    type="date"
+                    value={newReminder.dueDate}
+                    onChange={(e) => setNewReminder({...newReminder, dueDate: e.target.value})}
+                  />
+                  <Button onClick={handleAddReminder}>Add Reminder</Button>
+                </div>
+                <div className="space-y-2">
+                  {reminders.map((reminder) => (
+                    <Card key={reminder.id} className="p-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{reminder.title}</h4>
+                          <p className="text-sm text-muted-foreground">{reminder.content}</p>
+                          <p className="text-xs text-blue-600">Due: {reminder.dueDate}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="outline" onClick={() => setEditingReminder(reminder)}>
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setReminders(reminders.filter(r => r.id !== reminder.id))}>
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>Are you sure you want to delete "{deleteConfirmation?.item.name}"?</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDeleteConfirmation(null)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteItem}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

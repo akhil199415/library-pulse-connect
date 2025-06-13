@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ interface Book {
   language?: string;
   genre: string;
   publisher: string;
-  isbn: string;
+  bookNumberField: string;
   price: number;
   shelf: string;
   rack: string;
@@ -40,7 +41,7 @@ interface Book {
 }
 
 export const BookManagement = () => {
-  const { genres, languages } = useSettings();
+  const { genres, languages, publishers } = useSettings();
   
   const [books, setBooks] = useState<Book[]>([
     {
@@ -51,7 +52,7 @@ export const BookManagement = () => {
       language: "English",
       genre: "Technology",
       publisher: "Tech Publications",
-      isbn: "978-0123456789",
+      bookNumberField: "978-0123456789",
       price: 450,
       shelf: "A",
       rack: "1",
@@ -138,7 +139,7 @@ export const BookManagement = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [deleteIsbn, setDeleteIsbn] = useState("");
+  const [deleteBookNumber, setDeleteBookNumber] = useState("");
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
   const [newBook, setNewBook] = useState({
@@ -147,7 +148,7 @@ export const BookManagement = () => {
     language: "",
     genre: "",
     publisher: "",
-    isbn: "",
+    bookNumberField: "",
     price: 0,
     shelf: "",
     rack: "",
@@ -166,7 +167,7 @@ export const BookManagement = () => {
   };
 
   const isAddBookDisabled = () => {
-    return !newBook.title || !newBook.author || !newBook.genre || !newBook.publisher || !newBook.isbn || !newBook.condition || !newBook.type || !newBook.source;
+    return !newBook.title || !newBook.author || !newBook.genre || !newBook.publisher || !newBook.bookNumberField || !newBook.condition || !newBook.type || !newBook.source;
   };
 
   const handleAddBook = () => {
@@ -185,7 +186,7 @@ export const BookManagement = () => {
       language: "",
       genre: "",
       publisher: "",
-      isbn: "",
+      bookNumberField: "",
       price: 0,
       shelf: "",
       rack: "",
@@ -222,7 +223,7 @@ export const BookManagement = () => {
     setTimeout(() => {
       setShowDeleteSuccess(false);
       setIsDeleteDialogOpen(false);
-      setDeleteIsbn("");
+      setDeleteBookNumber("");
     }, 2000);
   };
 
@@ -246,7 +247,7 @@ export const BookManagement = () => {
     return matchesSearch && matchesType && matchesCondition && matchesGenre && matchesTab && matchesDate;
   });
 
-  const isDeleteEnabled = deleteIsbn === selectedBook?.isbn;
+  const isDeleteEnabled = deleteBookNumber === selectedBook?.bookNumberField;
 
   return (
     <div className="space-y-6">
@@ -275,18 +276,6 @@ export const BookManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="author">Author *</Label>
-                  <Input
-                    id="author"
-                    value={newBook.author}
-                    onChange={(e) => setNewBook({...newBook, author: e.target.value})}
-                    placeholder="Enter author name"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
                   <Label htmlFor="language">Language</Label>
                   <Select 
                     value={newBook.language} 
@@ -301,6 +290,18 @@ export const BookManagement = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="author">Author *</Label>
+                  <Input
+                    id="author"
+                    value={newBook.author}
+                    onChange={(e) => setNewBook({...newBook, author: e.target.value})}
+                    placeholder="Enter author name"
+                  />
                 </div>
                 <div>
                   <Label htmlFor="genre">Genre *</Label>
@@ -323,20 +324,27 @@ export const BookManagement = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="publisher">Publisher *</Label>
-                  <Input
-                    id="publisher"
-                    value={newBook.publisher}
-                    onChange={(e) => setNewBook({...newBook, publisher: e.target.value})}
-                    placeholder="Enter publisher"
-                  />
+                  <Select 
+                    value={newBook.publisher} 
+                    onValueChange={(value) => setNewBook({...newBook, publisher: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select publisher" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {publishers.map((publisher) => (
+                        <SelectItem key={publisher.id} value={publisher.name}>{publisher.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <Label htmlFor="isbn">ISBN *</Label>
+                  <Label htmlFor="bookNumber">Book Number *</Label>
                   <Input
-                    id="isbn"
-                    value={newBook.isbn}
-                    onChange={(e) => setNewBook({...newBook, isbn: e.target.value})}
-                    placeholder="Enter ISBN"
+                    id="bookNumber"
+                    value={newBook.bookNumberField}
+                    onChange={(e) => setNewBook({...newBook, bookNumberField: e.target.value})}
+                    placeholder="Enter book number"
                   />
                 </div>
               </div>
@@ -642,16 +650,16 @@ export const BookManagement = () => {
                   <p className="text-red-800 mb-2">Are you sure you want to delete this book?</p>
                   <div className="text-sm">
                     <p><strong>Title:</strong> {selectedBook.title}</p>
-                    <p><strong>ISBN:</strong> {selectedBook.isbn}</p>
+                    <p><strong>Book Number:</strong> {selectedBook.bookNumberField}</p>
                   </div>
                 </div>
                 
                 <div>
-                  <Label>Enter ISBN to confirm deletion</Label>
+                  <Label>Enter Book Number to confirm deletion</Label>
                   <Input
-                    value={deleteIsbn}
-                    onChange={(e) => setDeleteIsbn(e.target.value)}
-                    placeholder="Type the ISBN to confirm"
+                    value={deleteBookNumber}
+                    onChange={(e) => setDeleteBookNumber(e.target.value)}
+                    placeholder="Type the Book Number to confirm"
                   />
                 </div>
 

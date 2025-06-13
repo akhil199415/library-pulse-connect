@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ConfigItem {
@@ -29,8 +30,12 @@ interface SettingsContextType {
   setGenres: (genres: ConfigItem[]) => void;
   languages: ConfigItem[];
   setLanguages: (languages: ConfigItem[]) => void;
+  publishers: ConfigItem[];
+  setPublishers: (publishers: ConfigItem[]) => void;
   institutionLogo: string;
   setInstitutionLogo: (logo: string) => void;
+  backgroundColor: string;
+  setBackgroundColor: (color: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -144,7 +149,19 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     { id: "10", name: "Bengali" }
   ]);
 
+  const [publishers, setPublishers] = useState<ConfigItem[]>([
+    { id: "1", name: "Penguin Random House" },
+    { id: "2", name: "HarperCollins" },
+    { id: "3", name: "Macmillan" },
+    { id: "4", name: "Oxford University Press" },
+    { id: "5", name: "Cambridge University Press" },
+    { id: "6", name: "Pearson" },
+    { id: "7", name: "McGraw-Hill" },
+    { id: "8", name: "Wiley" }
+  ]);
+
   const [institutionLogo, setInstitutionLogo] = useState<string>("");
+  const [backgroundColor, setBackgroundColor] = useState<string>("#000000");
 
   return (
     <SettingsContext.Provider value={{
@@ -166,8 +183,12 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       setGenres,
       languages,
       setLanguages,
+      publishers,
+      setPublishers,
       institutionLogo,
-      setInstitutionLogo
+      setInstitutionLogo,
+      backgroundColor,
+      setBackgroundColor
     }}>
       {children}
     </SettingsContext.Provider>
