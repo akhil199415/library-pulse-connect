@@ -19,6 +19,7 @@ interface BookEditDialogProps {
 export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEditDialogProps) => {
   const { genres, languages } = useSettings();
   const { toast } = useToast();
+  const [showSuccess, setShowSuccess] = useState(false);
   
   const [formData, setFormData] = useState({
     isbn: "",
@@ -36,7 +37,9 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
     invoiceNumber: "",
     purchaseDate: "",
     totalCopies: 1,
-    description: ""
+    description: "",
+    shelf: "",
+    rack: ""
   });
 
   useEffect(() => {
@@ -57,7 +60,9 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
         invoiceNumber: book.invoiceNumber || "",
         purchaseDate: book.purchaseDate || "",
         totalCopies: book.totalCopies || 1,
-        description: book.description || ""
+        description: book.description || "",
+        shelf: book.shelf || "",
+        rack: book.rack || ""
       });
     }
   }, [book]);
@@ -69,14 +74,31 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
     };
 
     onUpdateBook(updatedBook);
-    onClose();
-
-    toast({
-      title: "Success",
-      description: "Changes saved successfully!",
-      className: "fixed top-4 right-4 z-50"
-    });
+    setShowSuccess(true);
+    
+    setTimeout(() => {
+      setShowSuccess(false);
+      onClose();
+    }, 2000);
   };
+
+  if (showSuccess) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-green-800 mb-2">Changes Saved Successfully!</h3>
+            <p className="text-green-600">The book information has been updated.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -87,20 +109,20 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="isbn">ISBN</Label>
-            <Input
-              id="isbn"
-              value={formData.isbn}
-              onChange={(e) => setFormData({...formData, isbn: e.target.value})}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Title *</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="author">Author *</Label>
+            <Input
+              id="author"
+              value={formData.author}
+              onChange={(e) => setFormData({...formData, author: e.target.value})}
             />
           </div>
 
@@ -121,16 +143,7 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
           </div>
 
           <div>
-            <Label htmlFor="author">Author</Label>
-            <Input
-              id="author"
-              value={formData.author}
-              onChange={(e) => setFormData({...formData, author: e.target.value})}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="genre">Genre</Label>
+            <Label htmlFor="genre">Genre *</Label>
             <Select value={formData.genre} onValueChange={(value) => setFormData({...formData, genre: value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Select genre" />
@@ -146,11 +159,30 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
           </div>
 
           <div>
-            <Label htmlFor="publisher">Publisher</Label>
+            <Label htmlFor="publisher">Publisher *</Label>
             <Input
               id="publisher"
               value={formData.publisher}
               onChange={(e) => setFormData({...formData, publisher: e.target.value})}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="isbn">ISBN *</Label>
+            <Input
+              id="isbn"
+              value={formData.isbn}
+              onChange={(e) => setFormData({...formData, isbn: e.target.value})}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="price">Price (₹)</Label>
+            <Input
+              id="price"
+              type="number"
+              value={formData.price}
+              onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
             />
           </div>
 
@@ -164,26 +196,27 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
           </div>
 
           <div>
-            <Label htmlFor="price">Price</Label>
+            <Label htmlFor="shelf">Shelf</Label>
             <Input
-              id="price"
-              type="number"
-              value={formData.price}
-              onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+              id="shelf"
+              value={formData.shelf}
+              onChange={(e) => setFormData({...formData, shelf: e.target.value})}
+              placeholder="A, B, C..."
             />
           </div>
 
           <div>
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="rack">Rack</Label>
             <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => setFormData({...formData, location: e.target.value})}
+              id="rack"
+              value={formData.rack}
+              onChange={(e) => setFormData({...formData, rack: e.target.value})}
+              placeholder="1, 2, 3..."
             />
           </div>
 
           <div>
-            <Label htmlFor="condition">Condition</Label>
+            <Label htmlFor="condition">Condition *</Label>
             <Select value={formData.condition} onValueChange={(value) => setFormData({...formData, condition: value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Select condition" />
@@ -198,7 +231,7 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
           </div>
 
           <div>
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type">Type *</Label>
             <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
@@ -215,7 +248,7 @@ export const BookEditDialog = ({ isOpen, onClose, book, onUpdateBook }: BookEdit
           </div>
 
           <div>
-            <Label htmlFor="source">Source</Label>
+            <Label htmlFor="source">Source *</Label>
             <Select value={formData.source} onValueChange={(value) => setFormData({...formData, source: value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Select source" />

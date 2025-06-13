@@ -1,15 +1,15 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
+import { Eye, EyeOff, UserPlus, LogIn, Key, AlertCircle } from "lucide-react";
 import { InstitutionType } from "@/components/auth/AuthProvider";
 import { OTPVerification } from "@/components/auth/OTPVerification";
 import { PasswordSetup } from "@/components/auth/PasswordSetup";
 import { ForgotPassword } from "@/components/auth/ForgotPassword";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AuthFormProps {
   onLogin: (credentials: { email: string; password: string }) => void;
@@ -24,16 +24,22 @@ interface AuthFormProps {
 
 type AuthStep = 'auth' | 'signup-otp' | 'signup-password' | 'forgot-password' | 'forgot-otp' | 'reset-password' | 'success';
 
+// Mock valid keys - in a real app, this would be validated on the backend
+const VALID_KEYS = ['LMS2024-SCHOOL-001', 'LMS2024-COLLEGE-002', 'LMS2024-PUBLIC-003'];
+const USED_KEYS = new Set<string>(); // Track used keys
+
 export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState<AuthStep>('auth');
+  const [keyError, setKeyError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     institutionType: "School" as InstitutionType,
     institutionName: "",
+    appWebsiteKey: "",
   });
 
   const institutionTypes: InstitutionType[] = [
@@ -45,6 +51,20 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
     "NGO"
   ];
 
+  const validateAppKey = (key: string): boolean => {
+    // Check if key is valid and not used
+    if (!VALID_KEYS.includes(key)) {
+      setKeyError("Invalid App Website Key. Please contact your administrator.");
+      return false;
+    }
+    if (USED_KEYS.has(key)) {
+      setKeyError("This App Website Key has already been used.");
+      return false;
+    }
+    setKeyError("");
+    return true;
+  };
+
   const handleSignInSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onLogin({ email: formData.email, password: formData.password });
@@ -52,6 +72,15 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
 
   const handleSignUpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate App Website Key
+    if (!validateAppKey(formData.appWebsiteKey)) {
+      return;
+    }
+    
+    // Mark key as used
+    USED_KEYS.add(formData.appWebsiteKey);
+    
     // Move to OTP verification step
     setCurrentStep('signup-otp');
   };
@@ -104,6 +133,11 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
       ...prev,
       [e.target.name]: e.target.value
     }));
+    
+    // Clear key error when user starts typing in the key field
+    if (e.target.name === 'appWebsiteKey') {
+      setKeyError("");
+    }
   };
 
   const goBackToAuth = () => {
@@ -208,7 +242,30 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
             {isSignUp && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="appWebsiteKey">App Website Key *</Label>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="appWebsiteKey"
+                      name="appWebsiteKey"
+                      type="text"
+                      placeholder="Enter your app website key"
+                      value={formData.appWebsiteKey}
+                      onChange={handleInputChange}
+                      className="pl-10"
+                      required={isSignUp}
+                    />
+                  </div>
+                  {keyError && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{keyError}</AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name *</Label>
                   <Input
                     id="name"
                     name="name"
@@ -221,7 +278,7 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="institutionType">Institution Type</Label>
+                  <Label htmlFor="institutionType">Institution Type *</Label>
                   <Select 
                     value={formData.institutionType} 
                     onValueChange={(value: InstitutionType) => 
@@ -242,7 +299,7 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="institutionName">Institution Name</Label>
+                  <Label htmlFor="institutionName">Institution Name *</Label>
                   <Input
                     id="institutionName"
                     name="institutionName"
@@ -257,7 +314,7 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 name="email"
@@ -271,7 +328,7 @@ export const AuthForm = ({ onLogin, onSignup }: AuthFormProps) => {
             
             {!isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Password *</Label>
                 <div className="relative">
                   <Input
                     id="password"

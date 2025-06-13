@@ -10,12 +10,14 @@ import { Search, Plus, Edit, Trash2, BookOpen, Calendar, User, FileText, Printer
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSettings } from "@/contexts/SettingsContext";
+import { BookEditDialog } from "@/components/book/BookEditDialog";
 
 interface Book {
   id: string;
   bookNumber: string;
   title: string;
   author: string;
+  language?: string;
   genre: string;
   publisher: string;
   isbn: string;
@@ -38,7 +40,7 @@ interface Book {
 }
 
 export const BookManagement = () => {
-  const { genres } = useSettings();
+  const { genres, languages } = useSettings();
   
   const [books, setBooks] = useState<Book[]>([
     {
@@ -46,6 +48,7 @@ export const BookManagement = () => {
       bookNumber: "BK001234",
       title: "Introduction to Computer Science",
       author: "John Smith",
+      language: "English",
       genre: "Technology",
       publisher: "Tech Publications",
       isbn: "978-0123456789",
@@ -136,12 +139,11 @@ export const BookManagement = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [deleteIsbn, setDeleteIsbn] = useState("");
-  const [showEditSuccess, setShowEditSuccess] = useState(false);
-  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
   const [newBook, setNewBook] = useState({
     title: "",
     author: "",
+    language: "",
     genre: "",
     publisher: "",
     isbn: "",
@@ -162,6 +164,10 @@ export const BookManagement = () => {
     return `BK${String(lastNumber + 1).padStart(6, '0')}`;
   };
 
+  const isAddBookDisabled = () => {
+    return !newBook.title || !newBook.author || !newBook.genre || !newBook.publisher || !newBook.isbn || !newBook.condition || !newBook.type || !newBook.source;
+  };
+
   const handleAddBook = () => {
     const book: Book = {
       id: Date.now().toString(),
@@ -175,6 +181,7 @@ export const BookManagement = () => {
     setNewBook({
       title: "",
       author: "",
+      language: "",
       genre: "",
       publisher: "",
       isbn: "",
@@ -195,17 +202,10 @@ export const BookManagement = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateBook = () => {
-    if (!selectedBook) return;
-    
+  const handleUpdateBook = (updatedBook: Book) => {
     setBooks(books.map(book => 
-      book.id === selectedBook.id ? selectedBook : book
+      book.id === updatedBook.id ? updatedBook : book
     ));
-    setShowEditSuccess(true);
-    setTimeout(() => {
-      setShowEditSuccess(false);
-      setIsEditDialogOpen(false);
-    }, 2000);
   };
 
   const handleDeleteBook = (book: Book) => {
@@ -286,7 +286,23 @@ export const BookManagement = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="genre">Genre</Label>
+                  <Label htmlFor="language">Language</Label>
+                  <Select 
+                    value={newBook.language} 
+                    onValueChange={(value) => setNewBook({...newBook, language: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {languages.map((language) => (
+                        <SelectItem key={language.id} value={language.name}>{language.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="genre">Genre *</Label>
                   <Select 
                     value={newBook.genre} 
                     onValueChange={(value) => setNewBook({...newBook, genre: value})}
@@ -301,8 +317,11 @@ export const BookManagement = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="publisher">Publisher</Label>
+                  <Label htmlFor="publisher">Publisher *</Label>
                   <Input
                     id="publisher"
                     value={newBook.publisher}
@@ -310,11 +329,8 @@ export const BookManagement = () => {
                     placeholder="Enter publisher"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="isbn">ISBN</Label>
+                  <Label htmlFor="isbn">ISBN *</Label>
                   <Input
                     id="isbn"
                     value={newBook.isbn}
@@ -322,6 +338,9 @@ export const BookManagement = () => {
                     placeholder="Enter ISBN"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="price">Price (₹)</Label>
                   <Input
@@ -332,29 +351,31 @@ export const BookManagement = () => {
                     placeholder="Enter price"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="shelf">Shelf</Label>
+                    <Input
+                      id="shelf"
+                      value={newBook.shelf}
+                      onChange={(e) => setNewBook({...newBook, shelf: e.target.value})}
+                      placeholder="A, B, C..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="rack">Rack</Label>
+                    <Input
+                      id="rack"
+                      value={newBook.rack}
+                      onChange={(e) => setNewBook({...newBook, rack: e.target.value})}
+                      placeholder="1, 2, 3..."
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="shelf">Shelf</Label>
-                  <Input
-                    id="shelf"
-                    value={newBook.shelf}
-                    onChange={(e) => setNewBook({...newBook, shelf: e.target.value})}
-                    placeholder="A, B, C..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rack">Rack</Label>
-                  <Input
-                    id="rack"
-                    value={newBook.rack}
-                    onChange={(e) => setNewBook({...newBook, rack: e.target.value})}
-                    placeholder="1, 2, 3..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="condition">Condition</Label>
+                  <Label htmlFor="condition">Condition *</Label>
                   <Select value={newBook.condition} onValueChange={(value) => setNewBook({...newBook, condition: value})}>
                     <SelectTrigger>
                       <SelectValue />
@@ -367,11 +388,8 @@ export const BookManagement = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type">Type *</Label>
                   <Select value={newBook.type} onValueChange={(value) => setNewBook({...newBook, type: value})}>
                     <SelectTrigger>
                       <SelectValue />
@@ -383,7 +401,7 @@ export const BookManagement = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="source">Source</Label>
+                  <Label htmlFor="source">Source *</Label>
                   <Select value={newBook.source} onValueChange={(value) => setNewBook({...newBook, source: value})}>
                     <SelectTrigger>
                       <SelectValue />
@@ -436,7 +454,7 @@ export const BookManagement = () => {
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddBook}>
+                <Button onClick={handleAddBook} disabled={isAddBookDisabled()}>
                   Add Book
                 </Button>
               </div>
@@ -451,7 +469,7 @@ export const BookManagement = () => {
           <CardTitle>Search & Filter</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -494,6 +512,8 @@ export const BookManagement = () => {
                 <SelectItem value="binding">Binding</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
               <Label htmlFor="dateFrom" className="text-xs block mb-1">From Date</Label>
               <Input
@@ -596,49 +616,12 @@ export const BookManagement = () => {
       </div>
 
       {/* Edit Book Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Book</DialogTitle>
-          </DialogHeader>
-          
-          {showEditSuccess && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-              <div className="text-green-800 font-medium">Changes saved successfully!</div>
-            </div>
-          )}
-
-          {selectedBook && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    value={selectedBook.title}
-                    onChange={(e) => setSelectedBook({...selectedBook, title: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label>Author</Label>
-                  <Input
-                    value={selectedBook.author}
-                    onChange={(e) => setSelectedBook({...selectedBook, author: e.target.value})}
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleUpdateBook}>
-                  Save Changes
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <BookEditDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        book={selectedBook}
+        onUpdateBook={handleUpdateBook}
+      />
 
       {/* Delete Book Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
