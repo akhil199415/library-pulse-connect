@@ -7,7 +7,6 @@ import { MemberManagement } from "@/components/MemberManagement";
 import { CirculationSystem } from "@/components/CirculationSystem";
 import { Reports } from "@/components/Reports";
 import { Settings } from "@/components/Settings";
-import { NotesReminders } from "@/components/NotesReminders";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { InstitutionHeader } from "@/components/InstitutionHeader";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -28,8 +27,6 @@ const Index = () => {
         return <CirculationSystem />;
       case "reports":
         return <Reports />;
-      case "notes":
-        return <NotesReminders />;
       case "settings":
         return <Settings />;
       default:
