@@ -8,26 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Upload, School, GraduationCap, Building, StickyNote, Bell } from "lucide-react";
+import { Plus, Edit2, Trash2, Upload, School, GraduationCap, Building } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useToast } from "@/hooks/use-toast";
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: string;
-}
-
-interface Reminder {
-  id: string;
-  title: string;
-  content: string;
-  dueDate: string;
-  createdAt: string;
-}
 
 export const Settings = () => {
   const { 
@@ -41,133 +25,67 @@ export const Settings = () => {
     genres, setGenres,
     languages, setLanguages,
     publishers, setPublishers,
-    institutionLogo, setInstitutionLogo,
-    backgroundColor, setBackgroundColor 
+    institutionLogo, setInstitutionLogo
   } = useSettings();
   
   const { toast } = useToast();
-  const [institutionType, setInstitutionType] = useState("school");
-  const [newItemName, setNewItemName] = useState("");
-  const [editingItem, setEditingItem] = useState<{id: string, name: string, type: string} | null>(null);
+
+  // Separate state for each section
+  const [classInput, setClassInput] = useState("");
+  const [divisionInput, setDivisionInput] = useState("");
+  const [streamInput, setStreamInput] = useState("");
+  const [courseInput, setCourseInput] = useState("");
+  const [yearSemesterInput, setYearSemesterInput] = useState("");
+  const [subjectInput, setSubjectInput] = useState("");
+  const [designationInput, setDesignationInput] = useState("");
+  const [genreInput, setGenreInput] = useState("");
+  const [languageInput, setLanguageInput] = useState("");
+  const [publisherInput, setPublisherInput] = useState("");
+
+  // Edit states for each section
+  const [editingClass, setEditingClass] = useState<{id: string, name: string} | null>(null);
+  const [editingDivision, setEditingDivision] = useState<{id: string, name: string} | null>(null);
+  const [editingStream, setEditingStream] = useState<{id: string, name: string} | null>(null);
+  const [editingCourse, setEditingCourse] = useState<{id: string, name: string} | null>(null);
+  const [editingYearSemester, setEditingYearSemester] = useState<{id: string, name: string} | null>(null);
+  const [editingSubject, setEditingSubject] = useState<{id: string, name: string} | null>(null);
+  const [editingDesignation, setEditingDesignation] = useState<{id: string, name: string} | null>(null);
+  const [editingGenre, setEditingGenre] = useState<{id: string, name: string} | null>(null);
+  const [editingLanguage, setEditingLanguage] = useState<{id: string, name: string} | null>(null);
+  const [editingPublisher, setEditingPublisher] = useState<{id: string, name: string} | null>(null);
+
   const [deleteConfirmation, setDeleteConfirmation] = useState<{item: {id: string, name: string}, type: string} | null>(null);
-  
-  // Notes and Reminders
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [newNote, setNewNote] = useState({ title: "", content: "" });
-  const [newReminder, setNewReminder] = useState({ title: "", content: "", dueDate: "" });
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
 
-  const backgroundColors = [
-    { name: "Black", value: "#000000" },
-    { name: "Deep Blue", value: "#1e3a8a" },
-    { name: "Dark Green", value: "#14532d" },
-    { name: "Purple", value: "#581c87" },
-    { name: "Maroon", value: "#7f1d1d" },
-    { name: "Teal", value: "#134e4a" },
-    { name: "Indigo", value: "#312e81" },
-    { name: "Slate", value: "#1e293b" }
-  ];
+  const handleAddItem = (type: string, input: string, setInput: (value: string) => void, items: any[], setItems: (items: any[]) => void) => {
+    if (!input.trim()) return;
 
-  const handleAddItem = (type: string) => {
-    if (!newItemName.trim()) return;
-
-    const newItem = { id: Date.now().toString(), name: newItemName.trim() };
-
-    switch (type) {
-      case 'classes':
-        setClasses([...classes, newItem]);
-        break;
-      case 'divisions':
-        setDivisions([...divisions, newItem]);
-        break;
-      case 'streams':
-        setStreams([...streams, newItem]);
-        break;
-      case 'courses':
-        setCourses([...courses, newItem]);
-        break;
-      case 'yearSemesters':
-        setYearSemesters([...yearSemesters, newItem]);
-        break;
-      case 'subjects':
-        setSubjects([...subjects, newItem]);
-        break;
-      case 'designations':
-        setDesignations([...designations, newItem]);
-        break;
-      case 'genres':
-        setGenres([...genres, newItem]);
-        break;
-      case 'languages':
-        setLanguages([...languages, newItem]);
-        break;
-      case 'publishers':
-        setPublishers([...publishers, newItem]);
-        break;
-      default:
-        break;
-    }
-
-    setNewItemName("");
+    const newItem = { id: Date.now().toString(), name: input.trim() };
+    setItems([...items, newItem]);
+    setInput("");
     toast({
       title: "Success",
-      description: `${type.slice(0, -1)} added successfully!`,
+      description: `${type} added successfully!`,
     });
   };
 
-  const handleEditItem = (item: { id: string, name: string }, type: string) => {
-    setEditingItem({ ...item, type });
-    setNewItemName(item.name);
+  const handleEditItem = (item: { id: string, name: string }, type: string, setEditing: (item: any) => void, setInput: (value: string) => void) => {
+    setEditing(item);
+    setInput(item.name);
   };
 
-  const handleUpdateItem = () => {
-    if (!editingItem || !newItemName.trim()) return;
+  const handleUpdateItem = (type: string, editingItem: any, input: string, setEditing: (item: any) => void, setInput: (value: string) => void, items: any[], setItems: (items: any[]) => void) => {
+    if (!editingItem || !input.trim()) return;
 
-    const updatedItem = { ...editingItem, name: newItemName.trim() };
-
-    switch (editingItem.type) {
-      case 'classes':
-        setClasses(classes.map(cls => cls.id === editingItem.id ? updatedItem : cls));
-        break;
-      case 'divisions':
-        setDivisions(divisions.map(div => div.id === editingItem.id ? updatedItem : div));
-        break;
-      case 'streams':
-        setStreams(streams.map(stream => stream.id === editingItem.id ? updatedItem : stream));
-        break;
-      case 'courses':
-        setCourses(courses.map(course => course.id === editingItem.id ? updatedItem : course));
-        break;
-      case 'yearSemesters':
-        setYearSemesters(yearSemesters.map(ys => ys.id === editingItem.id ? updatedItem : ys));
-        break;
-      case 'subjects':
-        setSubjects(subjects.map(subject => subject.id === editingItem.id ? updatedItem : subject));
-        break;
-      case 'designations':
-        setDesignations(designations.map(designation => designation.id === editingItem.id ? updatedItem : designation));
-        break;
-      case 'genres':
-        setGenres(genres.map(genre => genre.id === editingItem.id ? updatedItem : genre));
-        break;
-      case 'languages':
-        setLanguages(languages.map(language => language.id === editingItem.id ? updatedItem : language));
-        break;
-      case 'publishers':
-        setPublishers(publishers.map(publisher => publisher.id === editingItem.id ? updatedItem : publisher));
-        break;
-      default:
-        break;
-    }
-
-    setEditingItem(null);
-    setNewItemName("");
+    const updatedItems = items.map(item => 
+      item.id === editingItem.id ? { ...item, name: input.trim() } : item
+    );
+    setItems(updatedItems);
+    setEditing(null);
+    setInput("");
 
     toast({
       title: "Success",
-      description: `${editingItem.type.slice(0, -1)} updated successfully!`,
+      description: `${type} updated successfully!`,
     });
   };
 
@@ -211,8 +129,6 @@ export const Settings = () => {
       case 'publishers':
         setPublishers(publishers.filter(publisher => publisher.id !== item.id));
         break;
-      default:
-        break;
     }
 
     setDeleteConfirmation(null);
@@ -226,7 +142,40 @@ export const Settings = () => {
     <Badge key={item.id} className="gap-2">
       {item.name}
       <Edit2
-        onClick={() => handleEditItem(item, type)}
+        onClick={() => {
+          switch (type) {
+            case 'classes':
+              handleEditItem(item, type, setEditingClass, setClassInput);
+              break;
+            case 'divisions':
+              handleEditItem(item, type, setEditingDivision, setDivisionInput);
+              break;
+            case 'streams':
+              handleEditItem(item, type, setEditingStream, setStreamInput);
+              break;
+            case 'courses':
+              handleEditItem(item, type, setEditingCourse, setCourseInput);
+              break;
+            case 'yearSemesters':
+              handleEditItem(item, type, setEditingYearSemester, setYearSemesterInput);
+              break;
+            case 'subjects':
+              handleEditItem(item, type, setEditingSubject, setSubjectInput);
+              break;
+            case 'designations':
+              handleEditItem(item, type, setEditingDesignation, setDesignationInput);
+              break;
+            case 'genres':
+              handleEditItem(item, type, setEditingGenre, setGenreInput);
+              break;
+            case 'languages':
+              handleEditItem(item, type, setEditingLanguage, setLanguageInput);
+              break;
+            case 'publishers':
+              handleEditItem(item, type, setEditingPublisher, setPublisherInput);
+              break;
+          }
+        }}
         className="w-3 h-3 cursor-pointer hover:opacity-80"
       />
       <Trash2
@@ -236,35 +185,20 @@ export const Settings = () => {
     </Badge>
   );
 
-  const handleAddNote = () => {
-    if (!newNote.title.trim() || !newNote.content.trim()) return;
-
-    const note: Note = {
-      id: Date.now().toString(),
-      title: newNote.title.trim(),
-      content: newNote.content.trim(),
-      createdAt: new Date().toISOString()
-    };
-
-    setNotes([...notes, note]);
-    setNewNote({ title: "", content: "" });
-    toast({ title: "Success", description: "Note added successfully!" });
-  };
-
-  const handleAddReminder = () => {
-    if (!newReminder.title.trim() || !newReminder.content.trim() || !newReminder.dueDate) return;
-
-    const reminder: Reminder = {
-      id: Date.now().toString(),
-      title: newReminder.title.trim(),
-      content: newReminder.content.trim(),
-      dueDate: newReminder.dueDate,
-      createdAt: new Date().toISOString()
-    };
-
-    setReminders([...reminders, reminder]);
-    setNewReminder({ title: "", content: "", dueDate: "" });
-    toast({ title: "Success", description: "Reminder added successfully!" });
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setInstitutionLogo(result);
+        toast({
+          title: "Success",
+          description: "Institution logo uploaded successfully!",
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -274,65 +208,14 @@ export const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="academic">Academic</TabsTrigger>
           <TabsTrigger value="library">Library</TabsTrigger>
           <TabsTrigger value="institution">Institution</TabsTrigger>
-          <TabsTrigger value="notes">Notes & Reminders</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="w-5 h-5" />
-                Institution Type
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="institutionType">Select Institution Type</Label>
-                  <Select value={institutionType} onValueChange={setInstitutionType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="school">School</SelectItem>
-                      <SelectItem value="college">College/University</SelectItem>
-                      <SelectItem value="other">Other Institution</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Background Color</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {backgroundColors.map((color) => (
-                  <div key={color.value} className="flex items-center space-x-2">
-                    <div
-                      className="w-8 h-8 rounded border cursor-pointer"
-                      style={{ backgroundColor: color.value }}
-                      onClick={() => setBackgroundColor(color.value)}
-                    />
-                    <label className="text-sm">{color.name}</label>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4">
-                <Label>Selected Color: {backgroundColor}</Label>
-                <div className="w-full h-4 rounded mt-2" style={{ backgroundColor }}></div>
-              </div>
-            </CardContent>
-          </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Designations</CardTitle>
@@ -341,13 +224,15 @@ export const Settings = () => {
               <div className="flex gap-2">
                 <Input
                   placeholder="Add new designation"
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
+                  value={designationInput}
+                  onChange={(e) => setDesignationInput(e.target.value)}
                 />
-                {editingItem ? (
-                  <Button onClick={handleUpdateItem}>Update</Button>
+                {editingDesignation ? (
+                  <Button onClick={() => handleUpdateItem('designation', editingDesignation, designationInput, setEditingDesignation, setDesignationInput, designations, setDesignations)}>
+                    Update
+                  </Button>
                 ) : (
-                  <Button onClick={() => handleAddItem('designations')}>
+                  <Button onClick={() => handleAddItem('designation', designationInput, setDesignationInput, designations, setDesignations)}>
                     <Plus className="w-4 h-4" />
                   </Button>
                 )}
@@ -360,143 +245,171 @@ export const Settings = () => {
         </TabsContent>
 
         <TabsContent value="academic" className="space-y-6">
-          {institutionType === "school" && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <School className="w-5 h-5" />
-                    School Configuration
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Classes</h3>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add new class"
-                          value={newItemName}
-                          onChange={(e) => setNewItemName(e.target.value)}
-                        />
-                        <Button onClick={() => handleAddItem('classes')}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {classes.map((cls) => renderItemBadge(cls, 'classes'))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Divisions</h3>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add new division"
-                          value={newItemName}
-                          onChange={(e) => setNewItemName(e.target.value)}
-                        />
-                        <Button onClick={() => handleAddItem('divisions')}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {divisions.map((division) => renderItemBadge(division, 'divisions'))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Streams</h3>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add new stream"
-                        value={newItemName}
-                        onChange={(e) => setNewItemName(e.target.value)}
-                      />
-                      <Button onClick={() => handleAddItem('streams')}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <School className="w-5 h-5" />
+                School Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Classes</h3>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add new class"
+                      value={classInput}
+                      onChange={(e) => setClassInput(e.target.value)}
+                    />
+                    {editingClass ? (
+                      <Button onClick={() => handleUpdateItem('class', editingClass, classInput, setEditingClass, setClassInput, classes, setClasses)}>
+                        Update
+                      </Button>
+                    ) : (
+                      <Button onClick={() => handleAddItem('class', classInput, setClassInput, classes, setClasses)}>
                         <Plus className="w-4 h-4" />
                       </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {streams.map((stream) => renderItemBadge(stream, 'streams'))}
-                    </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-
-          {institutionType === "college" && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5" />
-                    College Configuration
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Courses</h3>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add new course"
-                          value={newItemName}
-                          onChange={(e) => setNewItemName(e.target.value)}
-                        />
-                        <Button onClick={() => handleAddItem('courses')}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {courses.map((course) => renderItemBadge(course, 'courses'))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Year/Semester</h3>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add new year/semester"
-                          value={newItemName}
-                          onChange={(e) => setNewItemName(e.target.value)}
-                        />
-                        <Button onClick={() => handleAddItem('yearSemesters')}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {yearSemesters.map((ys) => renderItemBadge(ys, 'yearSemesters'))}
-                      </div>
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    {classes.map((cls) => renderItemBadge(cls, 'classes'))}
                   </div>
+                </div>
 
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Subjects/Branches</h3>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add new subject/branch"
-                        value={newItemName}
-                        onChange={(e) => setNewItemName(e.target.value)}
-                      />
-                      <Button onClick={() => handleAddItem('subjects')}>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Divisions</h3>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add new division"
+                      value={divisionInput}
+                      onChange={(e) => setDivisionInput(e.target.value)}
+                    />
+                    {editingDivision ? (
+                      <Button onClick={() => handleUpdateItem('division', editingDivision, divisionInput, setEditingDivision, setDivisionInput, divisions, setDivisions)}>
+                        Update
+                      </Button>
+                    ) : (
+                      <Button onClick={() => handleAddItem('division', divisionInput, setDivisionInput, divisions, setDivisions)}>
                         <Plus className="w-4 h-4" />
                       </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {subjects.map((subject) => renderItemBadge(subject, 'subjects'))}
-                    </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
+                  <div className="flex flex-wrap gap-2">
+                    {divisions.map((division) => renderItemBadge(division, 'divisions'))}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Streams</h3>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add new stream"
+                    value={streamInput}
+                    onChange={(e) => setStreamInput(e.target.value)}
+                  />
+                  {editingStream ? (
+                    <Button onClick={() => handleUpdateItem('stream', editingStream, streamInput, setEditingStream, setStreamInput, streams, setStreams)}>
+                      Update
+                    </Button>
+                  ) : (
+                    <Button onClick={() => handleAddItem('stream', streamInput, setStreamInput, streams, setStreams)}>
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {streams.map((stream) => renderItemBadge(stream, 'streams'))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5" />
+                College Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Courses</h3>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add new course"
+                      value={courseInput}
+                      onChange={(e) => setCourseInput(e.target.value)}
+                    />
+                    {editingCourse ? (
+                      <Button onClick={() => handleUpdateItem('course', editingCourse, courseInput, setEditingCourse, setCourseInput, courses, setCourses)}>
+                        Update
+                      </Button>
+                    ) : (
+                      <Button onClick={() => handleAddItem('course', courseInput, setCourseInput, courses, setCourses)}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {courses.map((course) => renderItemBadge(course, 'courses'))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Year/Semester</h3>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add new year/semester"
+                      value={yearSemesterInput}
+                      onChange={(e) => setYearSemesterInput(e.target.value)}
+                    />
+                    {editingYearSemester ? (
+                      <Button onClick={() => handleUpdateItem('year/semester', editingYearSemester, yearSemesterInput, setEditingYearSemester, setYearSemesterInput, yearSemesters, setYearSemesters)}>
+                        Update
+                      </Button>
+                    ) : (
+                      <Button onClick={() => handleAddItem('year/semester', yearSemesterInput, setYearSemesterInput, yearSemesters, setYearSemesters)}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {yearSemesters.map((ys) => renderItemBadge(ys, 'yearSemesters'))}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Subjects/Branches</h3>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add new subject/branch"
+                    value={subjectInput}
+                    onChange={(e) => setSubjectInput(e.target.value)}
+                  />
+                  {editingSubject ? (
+                    <Button onClick={() => handleUpdateItem('subject', editingSubject, subjectInput, setEditingSubject, setSubjectInput, subjects, setSubjects)}>
+                      Update
+                    </Button>
+                  ) : (
+                    <Button onClick={() => handleAddItem('subject', subjectInput, setSubjectInput, subjects, setSubjects)}>
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {subjects.map((subject) => renderItemBadge(subject, 'subjects'))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="library" className="space-y-6">
@@ -509,13 +422,15 @@ export const Settings = () => {
                 <div className="flex gap-2">
                   <Input
                     placeholder="Add new genre"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
+                    value={genreInput}
+                    onChange={(e) => setGenreInput(e.target.value)}
                   />
-                  {editingItem?.type === 'genres' ? (
-                    <Button onClick={handleUpdateItem}>Update</Button>
+                  {editingGenre ? (
+                    <Button onClick={() => handleUpdateItem('genre', editingGenre, genreInput, setEditingGenre, setGenreInput, genres, setGenres)}>
+                      Update
+                    </Button>
                   ) : (
-                    <Button onClick={() => handleAddItem('genres')}>
+                    <Button onClick={() => handleAddItem('genre', genreInput, setGenreInput, genres, setGenres)}>
                       <Plus className="w-4 h-4" />
                     </Button>
                   )}
@@ -534,13 +449,15 @@ export const Settings = () => {
                 <div className="flex gap-2">
                   <Input
                     placeholder="Add new language"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
+                    value={languageInput}
+                    onChange={(e) => setLanguageInput(e.target.value)}
                   />
-                  {editingItem?.type === 'languages' ? (
-                    <Button onClick={handleUpdateItem}>Update</Button>
+                  {editingLanguage ? (
+                    <Button onClick={() => handleUpdateItem('language', editingLanguage, languageInput, setEditingLanguage, setLanguageInput, languages, setLanguages)}>
+                      Update
+                    </Button>
                   ) : (
-                    <Button onClick={() => handleAddItem('languages')}>
+                    <Button onClick={() => handleAddItem('language', languageInput, setLanguageInput, languages, setLanguages)}>
                       <Plus className="w-4 h-4" />
                     </Button>
                   )}
@@ -559,13 +476,15 @@ export const Settings = () => {
                 <div className="flex gap-2">
                   <Input
                     placeholder="Add new publisher"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
+                    value={publisherInput}
+                    onChange={(e) => setPublisherInput(e.target.value)}
                   />
-                  {editingItem?.type === 'publishers' ? (
-                    <Button onClick={handleUpdateItem}>Update</Button>
+                  {editingPublisher ? (
+                    <Button onClick={() => handleUpdateItem('publisher', editingPublisher, publisherInput, setEditingPublisher, setPublisherInput, publishers, setPublishers)}>
+                      Update
+                    </Button>
                   ) : (
-                    <Button onClick={() => handleAddItem('publishers')}>
+                    <Button onClick={() => handleAddItem('publisher', publisherInput, setPublisherInput, publishers, setPublishers)}>
                       <Plus className="w-4 h-4" />
                     </Button>
                   )}
@@ -588,113 +507,26 @@ export const Settings = () => {
                 {institutionLogo && (
                   <img src={institutionLogo} alt="Institution Logo" className="w-16 h-16 object-contain" />
                 )}
-                <Button variant="outline" className="gap-2">
-                  <Upload className="w-4 h-4" />
-                  Upload Logo
-                </Button>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    id="logo-upload"
+                  />
+                  <label htmlFor="logo-upload">
+                    <Button variant="outline" className="gap-2 cursor-pointer" asChild>
+                      <span>
+                        <Upload className="w-4 h-4" />
+                        Add Picture
+                      </span>
+                    </Button>
+                  </label>
+                </div>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="notes" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <StickyNote className="w-5 h-5" />
-                  Notes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Note title"
-                    value={newNote.title}
-                    onChange={(e) => setNewNote({...newNote, title: e.target.value})}
-                  />
-                  <Textarea
-                    placeholder="Note content"
-                    value={newNote.content}
-                    onChange={(e) => setNewNote({...newNote, content: e.target.value})}
-                    rows={3}
-                  />
-                  <Button onClick={handleAddNote}>Add Note</Button>
-                </div>
-                <div className="space-y-2">
-                  {notes.map((note) => (
-                    <Card key={note.id} className="p-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{note.title}</h4>
-                          <p className="text-sm text-muted-foreground">{note.content}</p>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={() => setEditingNote(note)}>
-                            <Edit2 className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => setNotes(notes.filter(n => n.id !== note.id))}>
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5" />
-                  Reminders
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Reminder title"
-                    value={newReminder.title}
-                    onChange={(e) => setNewReminder({...newReminder, title: e.target.value})}
-                  />
-                  <Textarea
-                    placeholder="Reminder content"
-                    value={newReminder.content}
-                    onChange={(e) => setNewReminder({...newReminder, content: e.target.value})}
-                    rows={2}
-                  />
-                  <Input
-                    type="date"
-                    value={newReminder.dueDate}
-                    onChange={(e) => setNewReminder({...newReminder, dueDate: e.target.value})}
-                  />
-                  <Button onClick={handleAddReminder}>Add Reminder</Button>
-                </div>
-                <div className="space-y-2">
-                  {reminders.map((reminder) => (
-                    <Card key={reminder.id} className="p-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{reminder.title}</h4>
-                          <p className="text-sm text-muted-foreground">{reminder.content}</p>
-                          <p className="text-xs text-blue-600">Due: {reminder.dueDate}</p>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={() => setEditingReminder(reminder)}>
-                            <Edit2 className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => setReminders(reminders.filter(r => r.id !== reminder.id))}>
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
 
