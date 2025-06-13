@@ -1,4 +1,3 @@
-
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -6,7 +5,8 @@ import {
   RefreshCcw, 
   BarChart3,
   Settings,
-  LogOut
+  LogOut,
+  StickyNote
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -25,6 +25,7 @@ export const Sidebar = ({ activeModule, setActiveModule }: SidebarProps) => {
     { id: "members", label: "Members", icon: Users },
     { id: "circulation", label: "Circulation", icon: RefreshCcw },
     { id: "reports", label: "Reports", icon: BarChart3 },
+    { id: "notes", label: "Notes & Reminders", icon: StickyNote },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 

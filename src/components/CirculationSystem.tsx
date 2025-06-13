@@ -1,419 +1,189 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { BookOpen, User, Calendar, ArrowRight, RotateCcw, Snowflake } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { WhatsAppMessaging } from "@/components/WhatsAppMessaging";
-import { OverdueFineReceipt } from "@/components/OverdueFineReceipt";
 import { CirculationFilters } from "@/components/circulation/CirculationFilters";
+import { WhatsAppMessaging } from "@/components/WhatsAppMessaging";
 
-interface Circulation {
+interface CirculationRecord {
   id: string;
-  bookId: string;
   bookTitle: string;
   bookNumber: string;
-  memberId: string;
   memberName: string;
-  memberCategory: string;
+  memberId: string;
+  memberPhone: string;
   issueDate: string;
   dueDate: string;
-  returnDate?: string;
-  status: "issued" | "returned" | "overdue";
-  fine: number;
-  frozenDate?: string;
-  freezeReason?: string;
-  receiptGenerated?: boolean;
-  receiptNumber?: string;
+  returnDate: string | null;
+  status: 'issued' | 'returned' | 'overdue' | 'frozen';
+  genre: string;
 }
 
-export const CirculationSystem = () => {
+const CirculationSystem = () => {
   const { toast } = useToast();
-  const [circulations, setCirculations] = useState<Circulation[]>([
-    {
-      id: "1",
-      bookId: "1",
-      bookTitle: "Introduction to Computer Science",
-      bookNumber: "BK001234",
-      memberId: "STU001234",
-      memberName: "Emily Parker",
-      memberCategory: "Student",
-      issueDate: "2024-05-20",
-      dueDate: "2024-06-03",
-      status: "issued",
-      fine: 0,
-    },
-    {
-      id: "2",
-      bookId: "3",
-      bookTitle: "Advanced Mathematics",
-      bookNumber: "BK001236",
-      memberId: "STU001234",
-      memberName: "Emily Parker",
-      memberCategory: "Student",
-      issueDate: "2024-05-18",
-      dueDate: "2024-06-01",
-      status: "overdue",
-      fine: 15,
-    },
-    {
-      id: "3",
-      bookId: "4",
-      bookTitle: "Physics Fundamentals",
-      bookNumber: "BK001237",
-      memberId: "TCH001567",
-      memberName: "Dr. Michael Brown",
-      memberCategory: "Teaching Staff",
-      issueDate: "2024-05-15",
-      dueDate: "2024-05-29",
-      status: "returned",
-      returnDate: "2024-05-28",
-      fine: 0,
-    },
-  ]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterGenre, setFilterGenre] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [isIssueDialogOpen, setIsIssueDialogOpen] = useState(false);
-  const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
-  const [isOverdueFineDialogOpen, setIsOverdueFineDialogOpen] = useState(false);
-  const [selectedOverdueCirculation, setSelectedOverdueCirculation] = useState<Circulation | null>(null);
-  const [isFreezeDialogOpen, setIsFreezeDialogOpen] = useState(false);
-  const [freezeReason, setFreezeReason] = useState("");
-  const [selectedOverdueForFreeze, setSelectedOverdueForFreeze] = useState<Circulation | null>(null);
-  const [isReceiptNumberDialogOpen, setIsReceiptNumberDialogOpen] = useState(false);
-  const [receiptNumberInput, setReceiptNumberInput] = useState("");
-  const [selectedReceiptCirculation, setSelectedReceiptCirculation] = useState<Circulation | null>(null);
-
-  const [issueForm, setIssueForm] = useState({
-    bookNumber: "",
-    memberId: "",
-  });
-
-  const [returnForm, setReturnForm] = useState({
-    bookNumber: "",
-  });
-
-  const calculateFine = (dueDate: string, returnDate?: string) => {
-    const due = new Date(dueDate);
-    const returned = returnDate ? new Date(returnDate) : new Date();
-    const diffTime = returned.getTime() - due.getTime();
-    const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-    return diffDays > 7 ? (diffDays - 7) * 1 : 0;
-  };
-
-  const getDueDate = (issueDate: string) => {
-    const issue = new Date(issueDate);
-    issue.setDate(issue.getDate() + 14);
-    return issue.toISOString().split('T')[0];
-  };
-
-  const handleIssueBook = () => {
-    if (!issueForm.bookNumber || !issueForm.memberId) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newCirculation: Circulation = {
-      id: Date.now().toString(),
-      bookId: "new_book_id",
-      bookTitle: "Sample Book Title",
-      bookNumber: issueForm.bookNumber,
-      memberId: issueForm.memberId,
-      memberName: "Sample Member",
-      memberCategory: "Student",
-      issueDate: new Date().toISOString().split('T')[0],
-      dueDate: getDueDate(new Date().toISOString().split('T')[0]),
+  const [records, setRecords] = useState<CirculationRecord[]>([
+    {
+      id: "1",
+      bookTitle: "The Lord of the Rings",
+      bookNumber: "12345",
+      memberName: "John Doe",
+      memberId: "67890",
+      memberPhone: "+15551234567",
+      issueDate: "2024-01-15",
+      dueDate: "2024-02-15",
+      returnDate: null,
       status: "issued",
-      fine: 0,
-    };
+      genre: "Fiction",
+    },
+    {
+      id: "2",
+      bookTitle: "Pride and Prejudice",
+      bookNumber: "23456",
+      memberName: "Jane Smith",
+      memberId: "78901",
+      memberPhone: "+15552345678",
+      issueDate: "2023-12-20",
+      dueDate: "2024-01-20",
+      returnDate: "2024-01-18",
+      status: "returned",
+      genre: "Fiction",
+    },
+    {
+      id: "3",
+      bookTitle: "The Hitchhiker's Guide to the Galaxy",
+      bookNumber: "34567",
+      memberName: "Alice Johnson",
+      memberId: "89012",
+      memberPhone: "+15553456789",
+      issueDate: "2024-02-01",
+      dueDate: "2024-03-01",
+      returnDate: null,
+      status: "overdue",
+      genre: "Science",
+    },
+    {
+      id: "4",
+      bookTitle: "The Silent Patient",
+      bookNumber: "45678",
+      memberName: "Bob Williams",
+      memberId: "90123",
+      memberPhone: "+15554567890",
+      issueDate: "2024-02-10",
+      dueDate: "2024-03-10",
+      returnDate: null,
+      status: "issued",
+      genre: "Fiction",
+    },
+    {
+      id: "5",
+      bookTitle: "Sapiens: A Brief History of Humankind",
+      bookNumber: "56789",
+      memberName: "Emily Brown",
+      memberId: "01234",
+      memberPhone: "+15555678901",
+      issueDate: "2024-01-25",
+      dueDate: "2024-02-25",
+      returnDate: null,
+      status: "issued",
+      genre: "Non-Fiction",
+    },
+  ]);
+  const [returnConfirmation, setReturnConfirmation] = useState<{ recordId: string } | null>(null);
+  const [freezeConfirmation, setFreezeConfirmation] = useState<{ recordId: string } | null>(null);
 
-    setCirculations([newCirculation, ...circulations]);
-    setIsIssueDialogOpen(false);
-    setIssueForm({ bookNumber: "", memberId: "" });
-    
-    toast({
-      title: "Success",
-      description: "Book issued successfully!",
-    });
+  const filteredRecords = records.filter((record) => {
+    const searchTermLower = searchTerm.toLowerCase();
+    const matchesSearch =
+      record.bookTitle.toLowerCase().includes(searchTermLower) ||
+      record.bookNumber.toLowerCase().includes(searchTermLower) ||
+      record.memberName.toLowerCase().includes(searchTermLower) ||
+      record.memberId.toLowerCase().includes(searchTermLower);
+
+    const matchesStatus =
+      filterStatus === "all" || record.status === filterStatus;
+
+    const matchesGenre =
+      filterGenre === "all" || record.genre === filterGenre;
+
+    const matchesDateRange =
+      (!dateFrom || new Date(record.issueDate) >= new Date(dateFrom)) &&
+      (!dateTo || new Date(record.issueDate) <= new Date(dateTo));
+
+    return matchesSearch && matchesStatus && matchesGenre && matchesDateRange;
+  });
+
+  const confirmReturn = (recordId: string) => {
+    setReturnConfirmation({ recordId });
   };
 
-  const handleReturnBook = () => {
-    if (!returnForm.bookNumber) {
-      toast({
-        title: "Error",
-        description: "Please enter book number",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const circulation = circulations.find(c => 
-      c.bookNumber === returnForm.bookNumber && c.status !== "returned"
+  const returnRecord = (recordId: string) => {
+    setRecords(
+      records.map((record) =>
+        record.id === recordId
+          ? { ...record, status: "returned", returnDate: new Date().toISOString().slice(0, 10) }
+          : record
+      )
     );
-
-    if (!circulation) {
-      toast({
-        title: "Error",
-        description: "Book not found or already returned",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (circulation.status === "overdue" && circulation.fine > 0) {
-      setSelectedOverdueCirculation(circulation);
-      setIsOverdueFineDialogOpen(true);
-      setIsReturnDialogOpen(false);
-      return;
-    }
-
-    const returnDate = new Date().toISOString().split('T')[0];
-    const fine = calculateFine(circulation.dueDate, returnDate);
-
-    setCirculations(circulations.map(c => 
-      c.id === circulation.id 
-        ? { ...c, status: "returned" as const, returnDate, fine }
-        : c
-    ));
-
-    setIsReturnDialogOpen(false);
-    setReturnForm({ bookNumber: "" });
-    
-    toast({
-      title: "Success",
-      description: fine > 0 ? `Book returned! Fine: ₹${fine}` : "Book returned successfully!",
-    });
-  };
-
-  const handleOverdueReturn = (circulation: Circulation) => {
-    if (circulation.receiptGenerated && !circulation.receiptNumber) {
-      setSelectedReceiptCirculation(circulation);
-      setIsReceiptNumberDialogOpen(true);
-      return;
-    }
-
-    if (circulation.status === "overdue" && circulation.fine > 0) {
-      setSelectedOverdueCirculation(circulation);
-      setIsOverdueFineDialogOpen(true);
-    } else {
-      handleRegularReturn(circulation);
-    }
-  };
-
-  const handleRegularReturn = (circulation: Circulation) => {
-    const returnDate = new Date().toISOString().split('T')[0];
-    
-    setCirculations(circulations.map(c => 
-      c.id === circulation.id 
-        ? { ...c, status: "returned" as const, returnDate, fine: 0 }
-        : c
-    ));
-    
+    setReturnConfirmation(null);
     toast({
       title: "Success",
       description: "Book returned successfully!",
     });
   };
 
-  const handleReceiptGenerated = (receiptNo: string) => {
-    if (selectedOverdueCirculation) {
-      setCirculations(circulations.map(c => 
-        c.id === selectedOverdueCirculation.id 
-          ? { ...c, receiptGenerated: true, receiptNumber: receiptNo }
-          : c
-      ));
-      
-      toast({
-        title: "Success",
-        description: `Receipt #${receiptNo} generated! Please enter receipt number to complete return.`,
-      });
-      
-      setSelectedOverdueCirculation(null);
-    }
+  const cancelReturn = () => {
+    setReturnConfirmation(null);
   };
 
-  const handleCancelOverdue = () => {
-    if (selectedOverdueCirculation) {
-      const returnDate = new Date().toISOString().split('T')[0];
-      
-      setCirculations(circulations.map(c => 
-        c.id === selectedOverdueCirculation.id 
-          ? { ...c, status: "returned" as const, returnDate, fine: 0 }
-          : c
-      ));
-      
-      toast({
-        title: "Success",
-        description: "Overdue fine cancelled and book returned successfully!",
-      });
-      
-      setSelectedOverdueCirculation(null);
-    }
+  const freezeRecord = (recordId: string) => {
+    setFreezeConfirmation({ recordId });
   };
 
-  const handleFreezeOverdue = (circulation: Circulation) => {
-    setSelectedOverdueForFreeze(circulation);
-    setIsFreezeDialogOpen(true);
-  };
-
-  const confirmFreezeOverdue = () => {
-    if (!selectedOverdueForFreeze || !freezeReason.trim()) return;
-    
-    setCirculations(circulations.map(c => 
-      c.id === selectedOverdueForFreeze.id 
-        ? { ...c, frozenDate: new Date().toISOString().split('T')[0], freezeReason }
-        : c
-    ));
-    
-    setIsFreezeDialogOpen(false);
-    setFreezeReason("");
-    setSelectedOverdueForFreeze(null);
-    
+  const confirmFreeze = (recordId: string) => {
+    setRecords(
+      records.map((record) =>
+        record.id === recordId ? { ...record, status: "frozen" } : record
+      )
+    );
+    setFreezeConfirmation(null);
     toast({
       title: "Success",
-      description: "Overdue fine has been frozen successfully from today's date.",
+      description: "Record frozen successfully!",
     });
   };
 
-  const handleReceiptNumberSubmit = () => {
-    if (!receiptNumberInput.trim() || !selectedReceiptCirculation) return;
-
-    const returnDate = new Date().toISOString().split('T')[0];
-    
-    setCirculations(circulations.map(c => 
-      c.id === selectedReceiptCirculation.id 
-        ? { ...c, status: "returned" as const, returnDate, receiptNumber: receiptNumberInput }
-        : c
-    ));
-    
-    setIsReceiptNumberDialogOpen(false);
-    setReceiptNumberInput("");
-    setSelectedReceiptCirculation(null);
-    
-    toast({
-      title: "Success",
-      description: "Book returned successfully with receipt number!",
-    });
+  const cancelFreeze = () => {
+    setFreezeConfirmation(null);
   };
 
-  const filteredCirculations = circulations.filter(circulation => {
-    const matchesSearch = circulation.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         circulation.bookNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         circulation.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         circulation.memberId.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === "all" || circulation.status === filterStatus;
-    
-    let matchesDate = true;
-    if (dateFrom || dateTo) {
-      const issueDate = new Date(circulation.issueDate);
-      if (dateFrom) {
-        matchesDate = matchesDate && issueDate >= new Date(dateFrom);
-      }
-      if (dateTo) {
-        matchesDate = matchesDate && issueDate <= new Date(dateTo);
-      }
-    }
-    
-    return matchesSearch && matchesStatus && matchesDate;
-  });
-
-  const activeCirculations = filteredCirculations.filter(c => c.status !== "returned");
-  const returnedCirculations = filteredCirculations.filter(c => c.status === "returned");
+  const calculateFine = (dueDate: string) => {
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = now.getTime() - due.getTime();
+    const daysOverdue = Math.ceil(diff / (1000 * 3600 * 24));
+    return daysOverdue > 0 ? daysOverdue * 10 : 0;
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Circulation System</h1>
-        <div className="flex gap-2">
-          <Dialog open={isIssueDialogOpen} onOpenChange={setIsIssueDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <BookOpen className="w-4 h-4" />
-                Issue Book
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Issue Book</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="bookNumber">Book Number *</Label>
-                  <Input
-                    id="bookNumber"
-                    value={issueForm.bookNumber}
-                    onChange={(e) => setIssueForm({...issueForm, bookNumber: e.target.value})}
-                    placeholder="Enter book number (e.g., BK001234)"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="memberId">Member ID *</Label>
-                  <Input
-                    id="memberId"
-                    value={issueForm.memberId}
-                    onChange={(e) => setIssueForm({...issueForm, memberId: e.target.value})}
-                    placeholder="Enter member ID (e.g., STU001234)"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setIsIssueDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleIssueBook}>
-                    Issue Book
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isReturnDialogOpen} onOpenChange={setIsReturnDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <RotateCcw className="w-4 h-4" />
-                Return Book
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Return Book</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="returnBookNumber">Book Number *</Label>
-                  <Input
-                    id="returnBookNumber"
-                    value={returnForm.bookNumber}
-                    onChange={(e) => setReturnForm({...returnForm, bookNumber: e.target.value})}
-                    placeholder="Enter book number (e.g., BK001234)"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setIsReturnDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleReturnBook}>
-                    Return Book
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
       </div>
 
       <CirculationFilters
@@ -429,253 +199,127 @@ export const CirculationSystem = () => {
         setDateTo={setDateTo}
       />
 
-      {/* Active Circulations */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5" />
-            Active Circulations ({activeCirculations.length})
-          </CardTitle>
+          <CardTitle>Circulation Records</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {activeCirculations.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No active circulations found
-              </div>
-            ) : (
-              activeCirculations.map((circulation) => (
-                <div key={circulation.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h4 className="font-semibold text-foreground">{circulation.bookTitle}</h4>
-                          <p className="text-sm text-muted-foreground">#{circulation.bookNumber}</p>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-foreground">{circulation.memberName}</p>
-                          <p className="text-sm text-muted-foreground">{circulation.memberId} • {circulation.memberCategory}</p>
-                        </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Book Title</TableHead>
+                  <TableHead>Book Number</TableHead>
+                  <TableHead>Member Name</TableHead>
+                  <TableHead>Member ID</TableHead>
+                  <TableHead>Issue Date</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Return Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRecords.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>{record.bookTitle}</TableCell>
+                    <TableCell>{record.bookNumber}</TableCell>
+                    <TableCell>{record.memberName}</TableCell>
+                    <TableCell>{record.memberId}</TableCell>
+                    <TableCell>{record.issueDate}</TableCell>
+                    <TableCell>{record.dueDate}</TableCell>
+                    <TableCell>{record.returnDate || "N/A"}</TableCell>
+                    <TableCell>{record.status}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <WhatsAppMessaging
+                          memberName={record.memberName}
+                          memberPhone={record.memberPhone}
+                          bookTitle={record.bookTitle}
+                          dueDate={record.dueDate}
+                          isOverdue={record.status === 'overdue'}
+                        />
+                        {record.status === 'issued' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => freezeRecord(record.id)}
+                          >
+                            Frozen
+                          </Button>
+                        )}
+                        {record.status === "issued" && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => confirmReturn(record.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Return
+                          </Button>
+                        )}
+                        {record.status === "overdue" && (
+                          <Button size="sm" variant="destructive">
+                            Fine: ${calculateFine(record.dueDate)}
+                          </Button>
+                        )}
                       </div>
-                      
-                      <div className="flex items-center gap-6 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Issued: {circulation.issueDate}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Due: {circulation.dueDate}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Badge variant={circulation.status === "overdue" ? "destructive" : "default"}>
-                        {circulation.status}
-                      </Badge>
-                      {circulation.fine > 0 && (
-                        <Badge variant="destructive">
-                          Fine: ₹{circulation.fine}
-                        </Badge>
-                      )}
-                      {circulation.frozenDate && (
-                        <Badge variant="secondary">
-                          Frozen
-                        </Badge>
-                      )}
-                      <WhatsAppMessaging
-                        memberName={circulation.memberName}
-                        bookTitle={circulation.bookTitle}
-                        dueDate={circulation.dueDate}
-                        isOverdue={circulation.status === "overdue"}
-                      />
-                      {circulation.status === "overdue" && !circulation.frozenDate && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="gap-1"
-                          onClick={() => handleFreezeOverdue(circulation)}
-                        >
-                          <Snowflake className="w-3 h-3" />
-                          Freeze Fine
-                        </Button>
-                      )}
-                      {circulation.status === "overdue" && circulation.frozenDate && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          disabled
-                          className="gap-1"
-                        >
-                          <Snowflake className="w-3 h-3" />
-                          Frozen
-                        </Button>
-                      )}
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleOverdueReturn(circulation)}
-                      >
-                        {circulation.receiptGenerated && !circulation.receiptNumber ? "Enter Receipt No" : "Return"}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Return History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <RotateCcw className="w-5 h-5" />
-            Return History ({returnedCirculations.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {returnedCirculations.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No return history found
-              </div>
-            ) : (
-              returnedCirculations.map((circulation) => (
-                <div key={circulation.id} className="border rounded-lg p-4 bg-muted/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h4 className="font-semibold text-foreground">{circulation.bookTitle}</h4>
-                          <p className="text-sm text-muted-foreground">#{circulation.bookNumber}</p>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-foreground">{circulation.memberName}</p>
-                          <p className="text-sm text-muted-foreground">{circulation.memberId} • {circulation.memberCategory}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                        <span>Issued: {circulation.issueDate}</span>
-                        <span>Due: {circulation.dueDate}</span>
-                        <span>Returned: {circulation.returnDate}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">Returned</Badge>
-                      {circulation.fine > 0 && (
-                        <Badge variant="destructive">
-                          Fine: ₹{circulation.fine}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Freeze Overdue Dialog */}
-      <Dialog open={isFreezeDialogOpen} onOpenChange={setIsFreezeDialogOpen}>
+      {/* Return Confirmation Dialog */}
+      <Dialog open={!!returnConfirmation} onOpenChange={cancelReturn}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Freeze Overdue Fine</DialogTitle>
+            <DialogTitle>Confirm Return</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {selectedOverdueForFreeze && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-blue-800 font-medium mb-2">
-                  Freeze overdue fine for: {selectedOverdueForFreeze.bookTitle}
-                </p>
-                <p className="text-sm text-blue-700">
-                  Current fine: ₹{selectedOverdueForFreeze.fine}
-                </p>
-              </div>
-            )}
-            <div>
-              <Label htmlFor="freezeReason">Reason for Freezing Overdue Fine *</Label>
-              <Textarea
-                id="freezeReason"
-                value={freezeReason}
-                onChange={(e) => setFreezeReason(e.target.value)}
-                placeholder="Enter reason for freezing overdue fine..."
-                rows={4}
-              />
-            </div>
+            <p>Are you sure you want to return this book?</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsFreezeDialogOpen(false)}>
+              <Button variant="outline" onClick={cancelReturn}>
                 Cancel
               </Button>
-              <Button 
-                onClick={confirmFreezeOverdue}
-                disabled={!freezeReason.trim()}
+              <Button
+                variant="default"
+                onClick={() => returnRecord(returnConfirmation?.recordId || "")}
               >
-                Freeze Fine
+                Return Book
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Receipt Number Entry Dialog */}
-      <Dialog open={isReceiptNumberDialogOpen} onOpenChange={setIsReceiptNumberDialogOpen}>
+      {/* Freeze Confirmation Dialog */}
+      <Dialog open={!!freezeConfirmation} onOpenChange={cancelFreeze}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enter Receipt Number</DialogTitle>
+            <DialogTitle>Confirm Freeze</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {selectedReceiptCirculation && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-800 font-medium mb-2">
-                  Book: {selectedReceiptCirculation.bookTitle}
-                </p>
-                <p className="text-sm text-green-700">
-                  Member: {selectedReceiptCirculation.memberName}
-                </p>
-              </div>
-            )}
-            <div>
-              <Label htmlFor="receiptNumber">Receipt Number *</Label>
-              <Input
-                id="receiptNumber"
-                value={receiptNumberInput}
-                onChange={(e) => setReceiptNumberInput(e.target.value)}
-                placeholder="Enter receipt number"
-              />
-            </div>
+            <p>Are you sure you want to freeze this record?</p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsReceiptNumberDialogOpen(false)}>
+              <Button variant="outline" onClick={cancelFreeze}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleReceiptNumberSubmit}
-                disabled={!receiptNumberInput.trim()}
+              <Button
+                variant="destructive"
+                onClick={() => confirmFreeze(freezeConfirmation?.recordId || "")}
               >
-                Submit & Return
+                Freeze Record
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-
-      {selectedOverdueCirculation && (
-        <OverdueFineReceipt
-          circulation={selectedOverdueCirculation}
-          isOpen={isOverdueFineDialogOpen}
-          onClose={() => setIsOverdueFineDialogOpen(false)}
-          onReceiptGenerated={handleReceiptGenerated}
-          onCancelOverdue={handleCancelOverdue}
-        />
-      )}
     </div>
   );
 };
+
+export default CirculationSystem;

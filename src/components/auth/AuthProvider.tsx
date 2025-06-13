@@ -60,6 +60,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         institutionName: 'Test Institution'
       };
       setUser(defaultUser);
+      
+      // Save new user to users list
+      const updatedUsers = [...savedUsers, defaultUser];
+      localStorage.setItem('libraryUsers', JSON.stringify(updatedUsers));
       localStorage.setItem('currentLibraryUser', JSON.stringify(defaultUser));
     }
   };
